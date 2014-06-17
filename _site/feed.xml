@@ -7,6 +7,15 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Elastic Map Reduce</title>
+        <description>&lt;h3 id=&quot;introduction-to-elastic-map-reduce&quot;&gt;Introduction to Elastic Map Reduce&lt;/h3&gt;
+</description>
+        <pubDate>Wed, 18 Jun 2014 00:00:00 -0400</pubDate>
+        <link>/datascience,/amazon,/mapreduce,/machinelearning,/distributed/2014/06/18/introduction-to-amazon-elastic-map-reduce.html</link>
+        <guid isPermaLink="true">/datascience,/amazon,/mapreduce,/machinelearning,/distributed/2014/06/18/introduction-to-amazon-elastic-map-reduce.html</guid>
+      </item>
+    
+      <item>
         <title>Testing Post From Github GUI Add</title>
         <description>&lt;p&gt;This is my first test post&lt;/p&gt;
 </description>
