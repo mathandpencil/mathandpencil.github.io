@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Introduction to Elastic Map Reduce</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/introduction-to-amazon-elastic-map-reduce">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+</head>
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Jun 18, 2014</p>
+		
+		<h1>Introduction to Elastic Map Reduce</h1>
+	</header>
+	
+	<article class="post-content">
+		<h2 id="introduction-to-elastic-map-reduce">Introduction to Elastic Map Reduce</h2>
+
+<h3 id="download-the-dataset">Download the dataset</h3>
+
+<p>First things first, you need to download the dataset. I was able to pull the entire dataset from the following <a href="http://www.andresmh.com/nyctaxitrips/">link</a>. I used <code>wget</code> to pull download the dataset to a running EC2 instance, and then saved the tar.gz to an S3 bucket for later use.</p>
+
+<p><code>
+wget https://nyctaxitrips.blob.core.windows.net/data/trip_fare_4.csv.zip
+</code></p>
+
+<p>I pulled down every file using <code>wget</code> before starting. After the entire data set was pulled down, I needed uncompress the fare files and the trip files using tar</p>
+
+<pre><code>sudo apt-get install unzip
+unzip trip_fare_4.csv.zip
+</code></pre>
+
+<p>Finally, we need to upload the uncompressed files to an S3 buckets so they can be processed by Amazon EMR. To do this, I used <a href="http://s3tools.org/s3cmd">s3cmd</a>. Before using the command, you need to configure it to use your Amazon access/secret keys</p>
+
+<pre><code>s3cmd --configure
+</code></pre>
+
+<p>Once the command has been configured, you can run the following commands to make new s3 buckets, and to copy the files from your local hard drive to those buckets:</p>
+
+<h3 id="data-set-format">Data set format</h3>
+
+<p><code>
+ubuntu@/taxi-data$ cat trip_data_1.csv | head -n 2
+medallion,hack_license,vendor_id,rate_code,store_and_fwd_flag,pickup_datetime,dropoff_datetime,passenger_count,trip_time_in_secs,trip_distance,pickup_longitude,pickup_latitude,dropoff_longitude,dropoff_latitude
+89D227B655E5C82AECF13C3F540D4CF4,BA96DE419E711691B9445D6A6307C170,CMT,1,N,2013-01-01 15:11:48,2013-01-01 15:18:10,4,382,1.00,-73.978165,40.757977,-73.989838,40.751171
+</code></p>
+
+<p>The fields in the trip data set are the following</p>
+
+<pre><code>medallion
+hack_license
+vendor_id
+rate_code
+store_and_fwd_flag
+pickup_datetime
+dropoff_datetime
+passenger_count
+trip_time_in_secs
+trip_distance
+pickup_longitude
+pickup_latitude
+dropoff_longitude
+dropoff_latitude
+</code></pre>
+
+<p>The fields in the fare data set are the following</p>
+
+<p><code>
+medallion, hack_license, vendor_id, pickup_datetime, payment_type, fare_amount, surcharge, mta_tax, tip_amount, tolls_amount, total_amount
+89D227B655E5C82AECF13C3F540D4CF4,BA96DE419E711691B9445D6A6307C170,CMT,2013-01-01 15:11:48,CSH,6.5,0,0.5,0,0,7
+</code></p>
+
+<pre><code>medallion
+hack_license
+vendor_id
+pickup_datetime
+payment_type
+fare_amount
+surcharge
+mta_tax
+tip_amount
+tolls_amount
+total_amount
+</code></pre>
+
+<h3 id="writing-the-mapper-and-the-reducer">Writing the mapper and the reducer</h3>
+
+<p>We need a mapper that parses the trip file</p>
+
+<div class="highlight"><pre><code class="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">argparse</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+	<span class="n">line</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>	
+	<span class="k">try</span><span class="p">:</span>
+		<span class="k">while</span> <span class="n">line</span><span class="p">:</span>
+			
+			<span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="s">&#39;medallion&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+			<span class="s">&#39;hack_license&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="s">&#39;vendor_id&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+			<span class="s">&#39;rate_code&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+			<span class="s">&#39;store_and_fwd_flag&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+			<span class="s">&#39;pickup_datetime&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+			<span class="s">&#39;dropoff_datetime&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
+			<span class="s">&#39;passenger_count&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span>
+			<span class="s">&#39;trip_time_in_secs&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>
+			<span class="s">&#39;trip_distance&#39;</span> <span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span>
+			<span class="s">&#39;pickup_longitude&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>
+			<span class="s">&#39;pickup_latitude&#39;</span> <span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span>
+			<span class="s">&#39;dropoff_longitude&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span>
+			<span class="s">&#39;dropoff_latitude&#39;</span> <span class="p">:</span><span class="n">line</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span>
+			<span class="p">}</span>
+
+			
+			<span class="k">print</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)])</span>
+			
+			<span class="n">line</span> <span class="o">=</span>  <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">None</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--fields&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s">&#39;fields&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()))</span></code></pre></div>
+
+<p>You can use this command as follows:</p>
+
+<pre><code>cat trip_data_1_10K.csv | ./mapper.py  --fields medallion,dropoff_datetime
+</code></pre>
+
+<p>The reducer doesnt need to do much</p>
+
+<div class="highlight"><pre><code class="python"><span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">json</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+		<span class="n">respondent</span><span class="p">,</span> <span class="n">likes</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
+		<span class="n">likes</span> <span class="o">=</span> <span class="n">likes</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">like</span> <span class="ow">in</span> <span class="n">likes</span><span class="p">:</span>
+			<span class="k">print</span> <span class="n">like</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="k">pass</span></code></pre></div>
+
+<h3 id="questions">Questions?</h3>
+
+<p>If you have any questions, or want to read more articles about machine learning, hadoop, pandas, python django, and statistics, following me <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a></p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

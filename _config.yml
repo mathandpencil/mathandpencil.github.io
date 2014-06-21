@@ -3,10 +3,9 @@ name: Math and Pencil
 title: 
 email: info@mathandpencil.com
 description: "Bringing Your Ideas To Life"
-baseurl: ""
-url: "https://www.socialq.com"
+url: "https://www.mathandpencil.com"
 username: "mathandpencil"
 
 # Build settings
 markdown: kramdown
-permalinks: pretty
+permalink: /:title
