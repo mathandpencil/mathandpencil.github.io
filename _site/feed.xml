@@ -8,17 +8,17 @@
     
       <item>
         <title>Using Latent Dirichlet Allocation to Categorize My Twitter Feed</title>
-        <description>&lt;p&gt;Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time today seeing if I could categorize the type of tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link by &lt;a href=&quot;http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/&quot;&gt;here&lt;/a&gt;. For the more mathematically inclined, you can read through this &lt;a href=&quot;http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf&quot;&gt;excellent paper&lt;/a&gt; which explains LDA in more detail.&lt;/p&gt;
+        <description>&lt;p&gt;Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time this past weekend seeing if I could categorize the tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  &lt;a href=&quot;http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/&quot;&gt;here&lt;/a&gt;. For the more mathematically inclined, you can read through this &lt;a href=&quot;http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf&quot;&gt;excellent paper&lt;/a&gt; which explains LDA in a lot more detail.&lt;/p&gt;
 
 &lt;p&gt;The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4500 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.&lt;/p&gt;
 
-&lt;p&gt;After downloading my Twitter archive, I opened up tweets.csv and extracted the single column containing the tweets to a new file for additional processing. I did this using a simple awk command:&lt;/p&gt;
+&lt;p&gt;After downloading my Twitter archive, I opened up tweets.csv (provided by twitter) and extracted the single column containing the tweets to a new file for additional processing. I did this using unix awk:&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;
 cat tweets.csv | awk -F&quot;,&quot; &#39;{print $6}&#39; &amp;gt; tweets_content.dat
 &lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;Next, I needed to extra the URLs I tweeted out of the actual tweets themselves, I wrote a simple Python program to do this:&lt;/p&gt;
+&lt;p&gt;Next, I needed to extract the URLs out of the tweets (I do not care about the content for this type of analysis). To extract the URLs, I wrote a simple Python script:&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env python&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
@@ -34,11 +34,11 @@ cat tweets.csv | awk -F&quot;,&quot; &#39;{print $6}&#39; &amp;gt; tweets_conten
 
 &lt;p&gt;After running this script across tweets_content.dat, I am left with a file what contains only the URLS I tweeted out. Here is a &lt;a href=&quot;https://gist.github.com/josephmisiti/782f8433b393069dfe4c&quot;&gt;gist&lt;/a&gt; of all of the URLS I found. &lt;/p&gt;
 
-&lt;p&gt;Now that I have the URLS, I need to be able to extract the information in the URLS to build a corpus to LDA analysis. Unfortunately, this was not as easy as I thought it was going to be. I initially started using Python’s excellent NLTK library to extract the HTML using the following command:&lt;/p&gt;
+&lt;p&gt;Now that I have the URLS, I need to be able to extract the information in the URLS to build a corpus for LDA analysis. Unfortunately, this was not as easy as I thought it was going to be. I initially started using Python’s excellent NLTK library to extract the HTML using the following command:&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;nltk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clean_html&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urlopen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;After spot checking the results, I realized that this was not successfully retriving HTML for about 1/3 of my URLS.  I did some more research and found &lt;a href=&quot;https://www.diffbot.com/&quot;&gt;DiffBot&lt;/a&gt;, which uses machine learning to figure out what content is valid and removes adds, etc. They will give you 10K calls/day for free, so I used their &lt;a href=&quot;http://diffbot.com/dev/docs/bulk/&quot;&gt;bulk API&lt;/a&gt; to retrieve the content of my URLS (parsed HTML). The bulk API call look something like this.&lt;/p&gt;
+&lt;p&gt;After spot checking the results, I realized that this was not successfully retriving HTML for about 1/3 of my URLS.  I did some more research and found &lt;a href=&quot;https://www.diffbot.com/&quot;&gt;DiffBot&lt;/a&gt;, which uses machine learning to figure out what content is valid and removes ads, etc. They will give you 10K calls/day for free, so I used their &lt;a href=&quot;http://diffbot.com/dev/docs/bulk/&quot;&gt;bulk API&lt;/a&gt; to retrieve the content of my URLS (parsed HTML). The bulk API call looks something like this.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env python&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
@@ -61,7 +61,7 @@ cat tweets.csv | awk -F&quot;,&quot; &#39;{print $6}&#39; &amp;gt; tweets_conten
 	&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;MISITI&amp;#39;&lt;/span&gt;
 	&lt;span class=&quot;n&quot;&gt;create_bulk_job&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;After about 10 minutes, DiffBot was able to pull crawl all of the URLs I sent it, and I downloaded the results into JSON format. Now that I had the html from each of the URLs, I could use it to make my corpus. I didnt use any sophisticated techniques to create the corpus - I wrote a quick script that extracted only words, made them lower case, and then remove all English stop words using NLTK.&lt;/p&gt;
+&lt;p&gt;After about 10 minutes, DiffBot was able to crawl all of the URLs I sent it, and I downloaded the results into JSON format. Now that I had the html from each of the URLs, I used the diffbot html to make my corpus. I didn’t use any sophisticated techniques to create the corpus (although I think you could add some here to see better performance) - I wrote a quick script that extracted only words, made them lower case, and then remove all English stop words using NLTK.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env python&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
@@ -87,7 +87,7 @@ cat tweets.csv | awk -F&quot;,&quot; &#39;{print $6}&#39; &amp;gt; tweets_conten
 	
 &lt;span class=&quot;n&quot;&gt;CORPUS_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;After the corpus has been created, you can choose the number of topics you want to search for and run LDA. I tried multiple different numbers and arrived at 10 to be optimal. The top words it all 10 topics can be found below (as gists). I ran LDA for 50 iterations. &lt;/p&gt;
+&lt;p&gt;After the corpus was created, I was able to run LDA on the data set. The inputs to the LDA process are the number of topics K, the corpus file (corpus.txt in this case), and priors for the alpha/beta distributions. I used default priors and ran LDA for 50 iterations. The whole process took about 10 minutes and my results can be seen in 10 gists below. I searched K from 5 - 20 and 10 topics yielded the best results. I did not take into account perplexity or any other metrics for making my decision. A plot check of the top words in each topic yield what appeared to be the following categories.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://gist.github.com/josephmisiti/3ed68c02d3d6877a3097&quot;&gt;Topic 1&lt;/a&gt; - social media / tech companies&lt;/p&gt;
 
@@ -142,6 +142,8 @@ cat tweets.csv | awk -F&quot;,&quot; &#39;{print $6}&#39; &amp;gt; tweets_conten
 &lt;p&gt;I upload the results in CSV format to Google Drive and anyone can download the data &lt;a href=&quot;https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;If you are interested in this type of content, you can following me on twitter: &lt;a href=&quot;https://www.twitter.com/josephmisiti&quot;&gt;@josephmisiti&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;If you need help with your data set, contact my firm at info@mathandpencil.com&lt;/p&gt;
 </description>
         <pubDate>Sun, 29 Jun 2014 00:00:00 -0400</pubDate>
         <link>/using-latent-dirichlet-allocation-to-categorize-my-twitter-feed</link>
