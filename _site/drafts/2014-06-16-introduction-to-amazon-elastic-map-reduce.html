@@ -6,7 +6,7 @@
 	<title>Introduction to Elastic Map Reduce</title>
 	<meta name="viewport" content="width=device-width">
 	<meta name="description" content="Bringing Your Ideas To Life">
-	<link rel="canonical" href="/introduction-to-amazon-elastic-map-reduce">
+	<link rel="canonical" href="/drafts/2014-06-16-introduction-to-amazon-elastic-map-reduce.html">
 	
 	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
 	
@@ -168,10 +168,7 @@ total_amount
 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
 	<span class="k">try</span><span class="p">:</span>
 		<span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-		<span class="n">respondent</span><span class="p">,</span> <span class="n">likes</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
-		<span class="n">likes</span> <span class="o">=</span> <span class="n">likes</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
-		<span class="k">for</span> <span class="n">like</span> <span class="ow">in</span> <span class="n">likes</span><span class="p">:</span>
-			<span class="k">print</span> <span class="n">like</span>
+		<span class="k">print</span> <span class="n">itemsline</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">)</span>
 	<span class="k">except</span><span class="p">:</span>
 		<span class="k">pass</span></code></pre></div>
 
