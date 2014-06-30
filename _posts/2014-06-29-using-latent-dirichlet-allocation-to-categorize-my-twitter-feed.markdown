@@ -4,17 +4,17 @@ title:  "Using Latent Dirichlet Allocation to Categorize My Twitter Feed"
 date:   2014-06-29
 ---
 
-Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time today seeing if I could categorize the type of tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link by [here](http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/). For the more mathematically inclined, you can read through this [excellent paper](http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf) which explains LDA in more detail.
+Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time today seeing if I could categorize the tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  [here](http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/). For the more mathematically inclined, you can read through this [excellent paper](http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf) which explains LDA in a lot more detail.
 
 The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4500 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.
 
-After downloading my Twitter archive, I opened up tweets.csv and extracted the single column containing the tweets to a new file for additional processing. I did this using a simple awk command:
+After downloading my Twitter archive, I opened up tweets.csv (provided by twitter) and extracted the single column containing the tweets to a new file for additional processing. I did this using unix awk:
 
 ```
 cat tweets.csv | awk -F"," '{print $6}' > tweets_content.dat
 ```
 
-Next, I needed to extract the URLs I tweeted out of the actual tweets themselves, I wrote a simple Python program to do this:
+Next, I needed to extract the URLs out of the tweets (I do not care about the content for this type of analysis). To extract the URLs, I wrote a simple Python script:
 
 {% highlight python %}
 #!/usr/bin/env python
