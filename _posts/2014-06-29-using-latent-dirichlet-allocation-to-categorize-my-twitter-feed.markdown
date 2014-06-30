@@ -14,7 +14,7 @@ After downloading my Twitter archive, I opened up tweets.csv and extracted the s
 cat tweets.csv | awk -F"," '{print $6}' > tweets_content.dat
 ```
 
-Next, I needed to extra the URLs I tweeted out of the actual tweets themselves, I wrote a simple Python program to do this:
+Next, I needed to extract the URLs I tweeted out of the actual tweets themselves, I wrote a simple Python program to do this:
 
 {% highlight python %}
 #!/usr/bin/env python
