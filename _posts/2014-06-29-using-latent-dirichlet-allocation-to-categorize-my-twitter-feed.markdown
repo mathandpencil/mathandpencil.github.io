@@ -150,4 +150,4 @@ for tweet in tweets:
 
 I upload the results in CSV format to Google Drive and anyone can download the data [here](https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing)
 
-If you are interested in this type of content, you can following me on twitter: [@josephmisiti](https://www.twitter.com/josephmisiti)
+If you are interested in this type of content, you can following me on twitter: [@josephmisiti](https://www.twitter.com/josephmisiti	)
