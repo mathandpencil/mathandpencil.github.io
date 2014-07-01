@@ -4,9 +4,9 @@ title:  "Using Latent Dirichlet Allocation to Categorize My Twitter Feed"
 date:   2014-06-29
 ---
 
-Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time this past weekend seeing if I could categorize the tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  [here](http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/). For the more mathematically inclined, you can read through this [excellent paper](http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf) which explains LDA in a lot more detail.
+Over the past 3 years, I have tweeted about  4100 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time this past weekend seeing if I could categorize the tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  [here](http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/). For the more mathematically inclined, you can read through this [excellent paper](http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf) which explains LDA in a lot more detail.
 
-The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4500 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.
+The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4100 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.
 
 After downloading my Twitter archive, I opened up tweets.csv (provided by twitter) and extracted the single column containing the tweets to a new file for additional processing. I did this using unix awk:
 
@@ -115,7 +115,7 @@ After the corpus was created, I was able to run LDA on the data set. The inputs 
 
 [Topic 10](https://gist.github.com/josephmisiti/50915dda4f745c572905) - religion / sexuality
 
-The final step to the process is calculating the topic distriubtion of each url/document. This can be done by simply summing the topic distribution vectors that correspond to each word in the document. These vectors are one of the outputs of the LDA process. After the vector sums are calculated, you need to normalize them so the sum of each vector is one (because they are, after all, a probability mass function). I used the following code to calculate the distributions of each 
+The final step to the process is calculating the topic distriubtion of each url/document. This can be done by simply summing the topic distribution vectors that correspond to each word in the document. These vectors are one of the outputs of the LDA process. After the vector sums are calculated, you need to normalize them so the sum of each vector is one (because they are, after all, a probability mass function). I used the following code to calculate the distributions of each url.
 
 {% highlight python %}
 import numpy as np
@@ -148,7 +148,7 @@ for tweet in tweets:
 	
 {% endhighlight %}
 
-I upload the results in CSV format to Google Drive and anyone can download the data [here](https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing)
+I uploaded the results in CSV format to Google Drive and anyone can download the data [here](https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing). You can sort A-Z on any of the 10 topic columns and the theoretically the appropriate URLS should float to the topic. This process is not perfect, but I was pretty impressed with the results. I think if I tweeted a lot more, the number of unique words in my corpus (the vocabulary) would me much larger and would probably lead to better segmentation. In a future blog post, I plan on taking perplexity and the priors into account also.
 
 If you are interested in machine learning, math, and statistics you can following me on twitter: [@josephmisiti](https://www.twitter.com/josephmisiti) - I spend all day tweeting about it.
 
