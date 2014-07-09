@@ -1,12 +1,11 @@
 ---
 layout: post
-title:  "Unit Testing Gochas In Django"
+title:  "Unit Testing Best Practices In Django"
 date:   2014-07-08
 ---
 
 
-The following are a list of Django unit-testing gochas.
-
+Math and Pencil writes a lot of unit tests in Django. Over the years, we have compiled a number of helpers we use across multiple projects. Here is a list of "best practices" we have compiled.
 
 #### Directory Structure
 
