@@ -13,7 +13,17 @@
 	<!-- Custom CSS -->
 	<link rel="stylesheet" href="/css/main.css">
 	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("LDA Article");
+	</script>
+	
 </head>
+
 
 	
 	<body>
@@ -40,9 +50,9 @@
 	</header>
 	
 	<article class="post-content">
-		<p>Over the past 3 years, I have tweeted about  4500 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time this past weekend seeing if I could categorize the tweets using Latent Dirichlet Allocation. For an great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  <a href="http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/">here</a>. For the more mathematically inclined, you can read through this <a href="http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf">excellent paper</a> which explains LDA in a lot more detail.</p>
+		<p>Over the past 3 years, I have tweeted about  4100 times, mostly URLS, and mostly about machine learning, statistics, big data, etc. I spent some time this past weekend seeing if I could categorize the tweets using Latent Dirichlet Allocation. For a great introduction to Latent Dirichlet Allocation (LDA), you can read the following link  <a href="http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation/">here</a>. For the more mathematically inclined, you can read through this <a href="http://www.semanticsearchart.com/downloads/UWEETR-2010-0006.pdf">excellent paper</a> which explains LDA in a lot more detail.</p>
 
-<p>The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4500 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.</p>
+<p>The first step to categorizing my tweets was pulling the data. I initially downloaded and installed Twython and tried to pull all of my tweets using the Twitter API, but that quickly realized there was an archive button under settings. So I stopped writing code and just double clicked the archive button. Apparently 4100 tweets is fairly easy to archive, because I received an email from Twitter within 15 seconds with a download link.</p>
 
 <p>After downloading my Twitter archive, I opened up tweets.csv (provided by twitter) and extracted the single column containing the tweets to a new file for additional processing. I did this using unix awk:</p>
 
@@ -66,11 +76,11 @@ cat tweets.csv | awk -F"," '{print $6}' &gt; tweets_content.dat
 
 <p>After running this script across tweets_content.dat, I am left with a file what contains only the URLS I tweeted out. Here is a <a href="https://gist.github.com/josephmisiti/782f8433b393069dfe4c">gist</a> of all of the URLS I found. </p>
 
-<p>Now that I have the URLS, I need to be able to extract the information in the URLS to build a corpus for LDA analysis. Unfortunately, this was not as easy as I thought it was going to be. I initially started using Python’s excellent NLTK library to extract the HTML using the following command:</p>
+<p>Once I had the URLS, I needed to be able to extract the information in the URLS to build a corpus for LDA analysis. Unfortunately, this was not as easy as I thought it was going to be. I initially started using Python’s excellent NLTK library to extract the HTML using the following command:</p>
 
 <div class="highlight"><pre><code class="python"><span class="n">nltk</span><span class="o">.</span><span class="n">clean_html</span><span class="p">(</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></code></pre></div>
 
-<p>After spot checking the results, I realized that this was not successfully retriving HTML for about 1/3 of my URLS.  I did some more research and found <a href="https://www.diffbot.com/">DiffBot</a>, which uses machine learning to figure out what content is valid and removes ads, etc. They will give you 10K calls/day for free, so I used their <a href="http://diffbot.com/dev/docs/bulk/">bulk API</a> to retrieve the content of my URLS (parsed HTML). The bulk API call looks something like this.</p>
+<p>After spot checking the results, I realized that this was not successfully retrieving HTML for about 1/3 of my URLS.  I did some more research and found <a href="https://www.diffbot.com/">DiffBot</a>, which uses machine learning to figure out what content is valid and removes ads, etc. They will give you 10K calls/day for free, so I used their <a href="http://diffbot.com/dev/docs/bulk/">bulk API</a> to retrieve the content of my URLS (parsed HTML). The bulk API call looks something like this.</p>
 
 <div class="highlight"><pre><code class="python"><span class="c">#!/usr/bin/env python</span>
 <span class="c"># -*- coding: utf-8 -*-</span>
@@ -119,7 +129,7 @@ cat tweets.csv | awk -F"," '{print $6}' &gt; tweets_content.dat
 	
 <span class="n">CORPUS_FILE</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
 
-<p>After the corpus was created, I was able to run LDA on the data set. The inputs to the LDA process are the number of topics K, the corpus file (corpus.txt in this case), and priors for the alpha/beta distributions. I used default priors and ran LDA for 50 iterations. The whole process took about 10 minutes and my results can be seen in 10 gists below. I searched K from 5 - 20 and 10 topics yielded the best results. I did not take into account perplexity or any other metrics for making my decision. A plot check of the top words in each topic yield what appeared to be the following categories.</p>
+<p>After the corpus was created, I was able to run LDA on the data set. The inputs to the LDA process are the number of topics K, the corpus file (corpus.txt in this case), and priors for the alpha/beta distributions. I used default priors and ran LDA for 50 iterations. The whole process took about 10 minutes and my results can be seen in 10 gists below. I searched K from 5 - 20 and 10 topics yielded the best results. I did not take into account perplexity or any other metrics for making my decision. A spot check of the top words in each topic yielded what appeared to be the following categories.</p>
 
 <p><a href="https://gist.github.com/josephmisiti/3ed68c02d3d6877a3097">Topic 1</a> - social media / tech companies</p>
 
@@ -141,7 +151,7 @@ cat tweets.csv | awk -F"," '{print $6}' &gt; tweets_content.dat
 
 <p><a href="https://gist.github.com/josephmisiti/50915dda4f745c572905">Topic 10</a> - religion / sexuality</p>
 
-<p>The final step to the process is calculating the topic distriubtion of each url/document. This can be done by simply summing the topic distribution vectors that correspond to each word in the document. These vectors are one of the outputs of the LDA process. After the vector sums are calculated, you need to normalize them so the sum of each vector is one (because they are, after all, a probability mass function). I used the following code to calculate the distributions of each </p>
+<p>The final step to the process was calculating the topic distriubtion of each url/document. This can be done by simply summing the topic distribution vectors that correspond to each word in the document. These vectors are one of the outputs of the LDA process. After the vector sums are calculated, you normalize each vector (because they are, after all, a probability mass function). I used the following code to calculate the distributions of each url.</p>
 
 <div class="highlight"><pre><code class="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
@@ -171,11 +181,13 @@ cat tweets.csv | awk -F"," '{print $6}' &gt; tweets_content.dat
 		
 	<span class="k">print</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;</span><span class="si">%2.3f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sum_vector</span><span class="p">]),</span><span class="n">title</span><span class="p">,</span><span class="n">url</span><span class="p">)</span></code></pre></div>
 
-<p>I upload the results in CSV format to Google Drive and anyone can download the data <a href="https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing">here</a></p>
+<p>I uploaded the results in CSV format to Google Drive and anyone can download the data <a href="https://docs.google.com/spreadsheets/d/1iwvCYeEEOF-4BtLf7gKUAA638fyftdlcgETpZeRYcP8/edit?usp=sharing">here</a>. You can sort A-Z on any of the 10 topic columns and theoretically the appropriate URLS should float to the top. This process is not perfect, but I was pretty impressed with the results. I think if I tweeted a lot more, the number of unique words in my corpus (the vocabulary) would be much larger and would probably lead to better segmentation. In a future blog post, I plan on taking perplexity and the priors into account also.</p>
 
-<p>If you are interested in this type of content, you can following me on twitter: <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a></p>
+<p>If you are interested in machine learning, math, and statistics you can following me on twitter: <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a> - I spend all day tweeting about it.</p>
 
 <p>If you need help with your data set, contact my firm at info@mathandpencil.com</p>
+
+<p>You can clone this <a href="https://github.com/mathandpencil/twitter-lda">repo</a>, but just a warning, I did not take anytime to organize the code or the results. </p>
 
 	</article>
 </div>
