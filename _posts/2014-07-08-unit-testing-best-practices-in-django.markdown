@@ -265,4 +265,4 @@ self.mock_graphapi = self.mock_graphapi_patcher.start()
 
 If you are interested in Django, machine learning, math, and/or statistics you can following me on twitter: [@josephmisiti](https://www.twitter.com/josephmisiti)
 
-If you need help with your Django or Machine Learning, contact my firm at info@mathandpencil.com
+If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com
