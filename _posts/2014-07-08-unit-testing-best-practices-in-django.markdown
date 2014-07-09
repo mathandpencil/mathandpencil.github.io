@@ -5,7 +5,7 @@ date:   2014-07-08
 ---
 
 
-Math and Pencil writes a lot of unit tests in Django. Over the years, we have compiled a number of helpers we use across multiple projects. Here is a list of "best practices" we have compiled.
+[Math and Pencil](http://www.mathandpencil.com) writes a lot of unit tests in Django. Over the years, we have compiled a number of helpers we use across multiple projects. Here is a list of "best practices" we have compiled.
 
 #### Directory Structure
 
