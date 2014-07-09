@@ -105,6 +105,14 @@ request = self.rf.get( '/hello_world')
 
 {% endhighlight %}
 
+#### Use Python Mock
+
+The [mock module](https://pypi.python.org/pypi/mock) has a number of built in methods that enhance unit testing. You can use the module to mock api calls, patch classes/functions, deleting attributes, etc. Add this to your arsenal as soon as possible.
+
+#### Faker
+
+If you have account data, user data, company data, address, etc ... you no longer have to hard code them thanks to [Faker](https://github.com/joke2k/faker). Faker generates a variety of different data, randomly, and is extremely useful in unit tests and for bootstrapping data.
+
 
 #### Testing AJAX Calls
 
