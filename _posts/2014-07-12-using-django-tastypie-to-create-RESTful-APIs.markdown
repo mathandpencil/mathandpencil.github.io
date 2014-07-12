@@ -5,7 +5,7 @@ date:   2014-07-12
 ---
 
 
-Over the years, [Math and Pencil](http://www.mathandpencil.com) has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to updated data on the server.
+Over the years, [Math and Pencil](http://www.mathandpencil.com) has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to update data on the server.
 
 There are a few different frameworks for setting up RESTful API calls using Django's ORM. For Postgres/MySQL backends, the following frameworks are available
 
