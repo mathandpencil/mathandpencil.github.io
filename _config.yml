@@ -9,4 +9,7 @@ username: "mathandpencil"
 # Build settings
 markdown: kramdown
 permalink: /:title
+
 baseurl: "http://blog.mathandpencil.com"
+#baseurl: ""
+
