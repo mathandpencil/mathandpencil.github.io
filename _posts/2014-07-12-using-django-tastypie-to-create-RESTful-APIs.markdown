@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Using Django Tastypie To Create RESTful URLs"
+title:  "Using Django Tastypie And Backbone.js To Create RESTful URLs"
 date:   2014-07-12
 ---
 
