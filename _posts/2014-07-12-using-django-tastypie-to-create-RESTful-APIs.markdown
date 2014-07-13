@@ -112,7 +112,7 @@ You can open up the Chrome console and call fetch on this collection and then us
 
 It is important to understand that in my example, [backbone_tastypie.js](https://github.com/PaulUithol/backbone-tastypie) is doing the heavy lifting formatting the data that is being returned from the API into the Backbone collection. This file is absolutely required for the tutorial to work.
 
-Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset on the the collection and then renders the app on this event: 
+Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset event on the the collection and then renders the app on this event: 
 
 {% highlight javascript %}
 
@@ -168,7 +168,7 @@ EXAMPLE.VIEWS.ExampleList = Backbone.View.extend({
 
 {% endhighlight %}
 
-You'll may also notice in my `accounts/index.html` that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:
+You'll also notice in my `accounts/index.html` that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:
 
 ```
 EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
@@ -183,7 +183,7 @@ You will see the list of models in your collection, displayed using backbone.js 
 
 ## Adding custom methods
 
-REST is great, but lets face it, it can not solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file `handle_login`.
+REST is great, but lets face it, it cannot solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file `handle_login`.
 
 {% highlight python %}
 
@@ -227,7 +227,7 @@ This API call could be used to log a user in via an AJAX request using his/her u
 
 ## Limiting Access To Data
 
-By default, the API I created allows any authenticated/non-authenticated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can override. For example, lets say you have `cat` model that has a `user` attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that create cats can update their cat objects, you would add the following methods to the Tastypie model resource class:
+By default, the API I created allows any authenticated/non-authenticated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can override. For example, lets say you have `cat` model that has a `user` attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that created cats can update their cat objects, you would add the following methods to the Tastypie model resource class:
 
 
 {% highlight python %}
@@ -304,6 +304,6 @@ def serialize_resource(cls, request, queryset, for_model=False, content_type="ap
 
 If you are interested in Django, machine learning, math, and/or statistics you can following me on twitter: [@josephmisiti](https://www.twitter.com/josephmisiti)
 
-The code for this tutorial can be forked on from our [github account](https://github.com/mathandpencil/django_tastypie_tutorial)
+The code for this tutorial can be forked from our [github account](https://github.com/mathandpencil/django_tastypie_tutorial)
 
 If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com
