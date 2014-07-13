@@ -106,13 +106,13 @@ EXAMPLE.COLLECTIONS.Users = new Users;
 
 {% endhighlight %}
 
-You can open up the Chrome console and call fetch on this collection and the use the collection's toJSON() method to confirm your new REST API is returning data from the server.
+You can open up the Chrome console and call fetch on this collection and then use the collection's toJSON() method to confirm your new REST API is returning data from the server.
 
 ![My helpful screenshot]({{ baseurl.url }}/images/posts/backbone_console.png)
 
 It is important to understand that in my example, [backbone_tastypie.js](https://github.com/PaulUithol/backbone-tastypie) is doing the heavy lifting formatting the data that is being returned from the API into the Backbone collection. This file is absolutely required for the tutorial to work.
 
-Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views, one that list the content of each model, and one that listens for a reset on the the collection and then renders the app on this event: 
+Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset on the the collection and then renders the app on this event: 
 
 {% highlight javascript %}
 
