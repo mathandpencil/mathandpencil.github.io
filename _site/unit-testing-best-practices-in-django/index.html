@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Unit Testing Best Practices In Django</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/unit-testing-best-practices-in-django">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/unit-testing-best-practices-in-django");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Jul 8, 2014</p>
+		
+		<h1>Unit Testing Best Practices In Django</h1>
+	</header>
+	
+	<article class="post-content">
+		<p><a href="http://www.mathandpencil.com">Math and Pencil</a> writes a lot of unit tests in Django. Over the years, we have compiled a number of helpers we use across multiple projects. Here is a list of “best practices” we have compiled.</p>
+
+<h4 id="directory-structure">Directory Structure</h4>
+
+<p>Split your unit tests into separate files. It makes maintaining them much easier, and it also allows you to run a single test or a set of tests from the command line. The following is an example directory structure from a Math &amp; Pencil</p>
+
+<p><img src="/images/posts/unit_test_directories.png" alt="My helpful screenshot" /></p>
+
+<h4 id="writing-unit-tests-with-session-data">Writing Unit Tests With Session Data</h4>
+
+<p>In general, avoid storing state-based data in a session. If you are going to store something in a session, and you want a unit test to make sure the view or code is working properly, you can bootstrap your session in your setUp function as follows:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+ <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
+ <span class="n">engine</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SESSION_ENGINE</span><span class="p">)</span>
+ <span class="n">store</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">SessionStore</span><span class="p">()</span>
+ <span class="n">store</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  
+ <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="n">settings</span><span class="o">.</span><span class="n">SESSION_COOKIE_NAME</span><span class="p">]</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">session_key</span>
+ <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">session</span>
+ <span class="n">session</span><span class="p">[</span><span class="s">&#39;page_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_settings</span><span class="o">.</span><span class="n">TEST_PAGE_ID</span>
+ <span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></code></pre></div>
+
+<p>In the example above, I am bootstrapping my session with the variable <code>page_id</code>.</p>
+
+<h4 id="using-djangorequest">Using Django.Request</h4>
+
+<p>Sometimes private functions in Django can take requests as input parameters. If you need to unit test these
+functions, you are going to need access to a Django request. You can use this class to gain access to the request object</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">RequestFactory</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>  
+	<span class="sd">&quot;&quot;&quot;	 </span>
+<span class="sd">	Class that lets you create mock Request objects for use in testing.	</span>
+<span class="sd">	Helpful when trying add data to a sessions </span>
+
+<span class="sd">	Usage:	</span>
+
+<span class="sd">	rf = RequestFactory()  </span>
+<span class="sd">	get_request = rf.get(&#39;/hello/&#39;)	 </span>
+<span class="sd">	post_request = rf.post(&#39;/submit/&#39;, {&#39;foo&#39;: &#39;bar&#39;})	</span>
+
+<span class="sd">	This class re-uses the django.test.client.Client interface, docs here:	</span>
+<span class="sd">	http://www.djangoproject.com/documentation/testing/#the-test-client	 </span>
+
+<span class="sd">	Once you have a request object you can pass it to any view function,   </span>
+<span class="sd">	just as if that view had been hooked up using a URLconf.  </span>
+
+<span class="sd">	&quot;&quot;&quot;</span>	 
+	<span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">request</span><span class="p">):</span>  
+		<span class="sd">&quot;&quot;&quot;	 </span>
+<span class="sd">		Similar to parent class, but returns the request object as soon as it  </span>
+<span class="sd">		has created it.	 </span>
+<span class="sd">		&quot;&quot;&quot;</span>	 
+		<span class="n">environ</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="s">&#39;HTTP_COOKIE&#39;</span><span class="p">:</span>       <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&#39;; &#39;</span><span class="p">),</span>
+		<span class="s">&#39;REQUEST_METHOD&#39;</span><span class="p">:</span>    <span class="s">&#39;GET&#39;</span><span class="p">,</span>
+		<span class="s">&#39;SERVER_NAME&#39;</span><span class="p">:</span>       <span class="s">&#39;testserver&#39;</span><span class="p">,</span>
+		<span class="s">&#39;SERVER_PORT&#39;</span><span class="p">:</span>       <span class="s">&#39;80&#39;</span><span class="p">,</span>
+		<span class="s">&#39;SERVER_PROTOCOL&#39;</span><span class="p">:</span>   <span class="s">&#39;HTTP/1.1&#39;</span><span class="p">,</span>
+		<span class="s">&#39;wsgi.version&#39;</span><span class="p">:</span>      <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
+		<span class="s">&#39;wsgi.url_scheme&#39;</span><span class="p">:</span>   <span class="s">&#39;http&#39;</span><span class="p">,</span>
+		<span class="s">&#39;wsgi.input&#39;</span><span class="p">:</span>        <span class="n">FakePayload</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">),</span>
+		<span class="s">&#39;wsgi.errors&#39;</span><span class="p">:</span>       <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span>
+		<span class="s">&#39;wsgi.multiprocess&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+		<span class="s">&#39;wsgi.multithread&#39;</span><span class="p">:</span>  <span class="bp">False</span><span class="p">,</span>
+		<span class="s">&#39;wsgi.run_once&#39;</span><span class="p">:</span>     <span class="bp">False</span><span class="p">,</span>
+		<span class="p">}</span>		
+
+		<span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>  
+		<span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>	 
+		<span class="n">request</span> <span class="o">=</span> <span class="n">WSGIRequest</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>	
+		<span class="n">handler</span> <span class="o">=</span> <span class="n">BaseHandler</span><span class="p">()</span>	 
+		<span class="n">handler</span><span class="o">.</span><span class="n">load_middleware</span><span class="p">()</span>  
+		<span class="k">for</span> <span class="n">middleware_method</span> <span class="ow">in</span> <span class="n">handler</span><span class="o">.</span><span class="n">_request_middleware</span><span class="p">:</span>  
+			<span class="k">if</span> <span class="n">middleware_method</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>	
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t create request mock object - &quot;</span>  
+								 <span class="s">&quot;request middleware returned a response&quot;</span><span class="p">)</span>	
+		<span class="k">return</span> <span class="n">request</span></code></pre></div>
+
+<p>Your unit test would look something like this:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">():</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">rf</span> <span class="o">=</span> <span class="n">RequestFactory</span><span class="p">()</span>
+<span class="o">...</span>
+
+<span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="s">&#39;/hello_world&#39;</span><span class="p">)</span></code></pre></div>
+
+<h4 id="use-python-mock">Use Python Mock</h4>
+
+<p>The <a href="https://pypi.python.org/pypi/mock">mock module</a> has a number of built in methods that enhance unit testing. You can use the module to mock api calls, patch classes/functions, deleting attributes, etc. Add this to your arsenal as soon as possible.</p>
+
+<h4 id="faker">Faker</h4>
+
+<p>If you have account data, user data, company data, address, etc … you no longer have to hard code them thanks to <a href="https://github.com/joke2k/faker">Faker</a>. Faker generates a variety of different data, randomly, and is extremely useful in unit tests and for bootstrapping data.</p>
+
+<h4 id="testing-ajax-calls">Testing AJAX Calls</h4>
+
+<p>Testing AJAX calls isn’t hard, but you should always load the response as JSON (using your favorite JSON module) and then write test to ensure the correct data is returned.</p>
+
+<div class="highlight"><pre><code class="python"><span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;add-question&#39;</span><span class="p">),</span> <span class="p">{},</span> <span class="n">HTTP_X_REQUESTED</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>	
+<span class="n">response_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">response_json</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">response_json</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;first_question_url&#39;</span><span class="p">):</span>
+	<span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;missing first_question_url: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">response_json</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">survey_url</span> <span class="o">=</span> <span class="n">response_json</span><span class="p">[</span><span class="s">&#39;first_question_url&#39;</span><span class="p">]</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">instance_id</span> <span class="o">=</span> <span class="n">response_json</span><span class="p">[</span><span class="s">&#39;instance_id&#39;</span><span class="p">]</span></code></pre></div>
+
+<h4 id="testing-emails">Testing emails</h4>
+
+<p>If you have a view or function that sends and email, Django has built in unit testing modules to let you test if the email was sent. It also lets you check the content (subject + body) of the email.</p>
+
+<div class="highlight"><pre><code class="python"><span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">GENERIC_SOCIALQ_WELCOME_EMAIL_SUBJECT</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span> <span class="s">&#39;newuser@socialq.com&#39;</span> <span class="ow">in</span> <span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">)</span></code></pre></div>
+
+<h4 id="mocking-the-facebook-api">Mocking the Facebook API</h4>
+
+<p>Do you use Facebook’s Graph API? If so, we develop this class to mock the facebook API in unit tests:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">MockGraphAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="n">me_profile</span><span class="o">=</span><span class="n">FACEBOOK_ME</span>
+	<span class="n">me_checkins</span><span class="o">=</span><span class="n">FACEBOOK_ME_CHECKINS</span>
+	<span class="n">me_friends</span><span class="o">=</span><span class="n">FACEBOOK_ME_FRIENDS</span>
+	<span class="n">me_accounts</span><span class="o">=</span><span class="n">FACEBOOK_ME_ACCOUNTS</span>
+	<span class="n">account_posts</span><span class="o">=</span><span class="n">FACEBOOK_ACCOUNT_POSTS</span>
+	<span class="n">post_insights</span><span class="o">=</span><span class="n">FACEBOOK_POST_INSIGHTS</span>
+	<span class="n">other_profiles</span><span class="o">=</span><span class="n">FACEBOOK_OTHER_PROFILES</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+		<span class="n">access_token</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">me_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_profile</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="n">access_token</span>
+	
+	<span class="k">def</span> <span class="nf">_is_me</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">id</span><span class="o">==</span><span class="s">&quot;me&quot;</span> <span class="ow">or</span> <span class="nb">id</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">me_id</span>
+
+	<span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="s">&quot;MOCKED:: GraphAPI </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">self</span><span class="o">.</span><span class="n">access_token</span>
+
+	<span class="k">def</span> <span class="nf">get_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+		<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[MOCKGraphAPI get_object] id=</span><span class="si">%s</span><span class="s"> args=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_profile</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_profiles</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span>
+		<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s">&quot;Failed to find id.  Add it or maybe you wanted the failure...&quot;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="p">{</span>
+			   <span class="s">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+			      <span class="s">&quot;message&quot;</span><span class="p">:</span> <span class="s">&quot;(#803) Some of the aliases you requested do not exist: &quot;</span> <span class="o">+</span> <span class="nb">id</span><span class="p">,</span>
+			      <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;OAuthException&quot;</span><span class="p">,</span>
+			      <span class="s">&quot;code&quot;</span><span class="p">:</span> <span class="mi">803</span>
+			   <span class="p">}</span>
+			<span class="p">}</span>
+
+	<span class="k">def</span> <span class="nf">get_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+		<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[MOCKGraphAPI get_objects] ids=</span><span class="si">%s</span><span class="s"> args=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+		<span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]):</span>
+			<span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+			<span class="n">d</span><span class="p">[</span><span class="s">&quot;me&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_profile</span>
+
+			<span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">FACEBOOK_FRIENDS_PROFILES</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">d</span>
+		<span class="k">return</span> <span class="n">FACEBOOK_FRIENDS_PROFILES</span>
+
+	<span class="k">def</span> <span class="nf">get_connections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">connection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+		<span class="n">date_format</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;date_format&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">)</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="n">id_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="ow">and</span> <span class="s">&quot;me(</span><span class="si">%s</span><span class="s">)&quot;</span><span class="o">%</span><span class="nb">id</span> <span class="ow">or</span> <span class="nb">id</span>
+		<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[MOCKGraphAPI get_connections] id=</span><span class="si">%s</span><span class="s"> getting &#39;</span><span class="si">%s</span><span class="s">&#39;, args=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">id_str</span><span class="p">,</span> <span class="n">connection_name</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+		<span class="k">if</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;friends&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_friends</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;likes&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="n">FACEBOOK_ME_LIKES</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="n">FACEBOOK_FRIENDS_LIKES</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)]</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;checkins&quot;</span><span class="p">:</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_checkins</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;scores&quot;</span><span class="p">:</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;data&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;feed&quot;</span><span class="p">:</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="n">FACEBOOK_ME_FEED</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;accounts&quot;</span><span class="p">:</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">me_accounts</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;posts&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">account_posts</span>
+		<span class="k">elif</span> <span class="n">connection_name</span> <span class="o">==</span> <span class="s">&quot;insights&quot;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_me</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_insights</span>
+			<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;[MOCKGraphAPI get_connections] returning </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ret</span><span class="p">),</span> <span class="n">colorize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NotImplementedError</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">put_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_object</span><span class="p">,</span> <span class="n">connection_name</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">put_wall_post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="p">{},</span> <span class="n">profile_id</span><span class="o">=</span><span class="s">&quot;me&quot;</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">put_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">put_like</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">delete_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">post_args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></code></pre></div>
+
+<p>You can use this class in a unit tests as follows:</p>
+
+<div class="highlight"><pre><code class="python"><span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi_patcher</span> <span class="o">=</span> <span class="n">patch</span><span class="p">(</span><span class="s">&#39;vendor.facebook.facebook.GraphAPI&#39;</span><span class="p">,</span>
+<span class="n">new_callable</span><span class="o">=</span><span class="n">getMockGraphAPI</span><span class="p">())</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi_patcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></code></pre></div>
+
+<p>If you are interested in Django, machine learning, math, and/or statistics you can following me on twitter: <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a></p>
+
+<p>If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com</p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

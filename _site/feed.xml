@@ -7,8 +7,160 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Using Django Tastypie To Create RESTful URLs</title>
-        <description>&lt;p&gt;Over the years, &lt;a href=&quot;http://www.mathandpencil.com&quot;&gt;Math and Pencil&lt;/a&gt; has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to updated data on the server.&lt;/p&gt;
+        <title>Setting Up A Django Website Using NGINX And Gunicorn</title>
+        <description>&lt;p&gt;Every Django website &lt;a href=&quot;http://www.mathandpencil.com&quot;&gt;Math and Pencil&lt;/a&gt; develops using &lt;a href=&quot;http://nginx.org/&quot;&gt;NGINX&lt;/a&gt; to serve static resources (CSS/JS/Images/Fonts) and &lt;a href=&quot;http://gunicorn.org/&quot;&gt;Gunicorn&lt;/a&gt; as the &lt;a href=&quot;https://www.djangoproject.com/&quot;&gt;Django&lt;/a&gt; webserver.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://nginx.org/&quot;&gt;NGINX&lt;/a&gt; is a load-balancer / front-end proxy written in C that is used by a large amount of sites on the internet today. &lt;/p&gt;
+
+&lt;h3 id=&quot;installing-nginx-on-ubuntu-1404&quot;&gt;Installing NGINX on UBUNTU 14.04&lt;/h3&gt;
+
+&lt;h3 id=&quot;adding-nginx-base-level-configuration-file&quot;&gt;Adding NGINX “base-level” configuration file&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;worker_processes&lt;/span&gt;    &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;user&lt;/span&gt;                &lt;span class=&quot;s&quot;&gt;nginx&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;pid&lt;/span&gt;                 &lt;span class=&quot;s&quot;&gt;/usr/local/nginx/logs/nginx.pid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;error_log&lt;/span&gt;           &lt;span class=&quot;s&quot;&gt;/var/logs/nginx/error.log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;worker_connections&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;http&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;access_log&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;/var/logs/nginx/access.log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    
+    &lt;span class=&quot;kn&quot;&gt;include&lt;/span&gt;         &lt;span class=&quot;s&quot;&gt;mime.types&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;default_type&lt;/span&gt;    &lt;span class=&quot;s&quot;&gt;application/octet-stream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    
+    &lt;span class=&quot;kn&quot;&gt;sendfile&lt;/span&gt;              &lt;span class=&quot;no&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;tcp_nopush&lt;/span&gt;            &lt;span class=&quot;no&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;keepalive_timeout&lt;/span&gt;     &lt;span class=&quot;mi&quot;&gt;600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;client_max_body_size&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;4M&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  
+    &lt;span class=&quot;kn&quot;&gt;gzip&lt;/span&gt;            &lt;span class=&quot;no&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;gzip_static&lt;/span&gt;     &lt;span class=&quot;no&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;gzip_comp_level&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;gzip_proxied&lt;/span&gt;    &lt;span class=&quot;s&quot;&gt;any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;gzip_vary&lt;/span&gt;       &lt;span class=&quot;no&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;gzip_types&lt;/span&gt;      &lt;span class=&quot;s&quot;&gt;text/plain&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;text/css&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application/x-javascript&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application/json&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;text/xml&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application/xml&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;application/xml+rss&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;text/javascript&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;kn&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/usr/local/nginx/config/sites-enabled/*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;adding-nginx-site-specific-level-configuration-file-non-https&quot;&gt;Adding NGINX “site-specific” level configuration file [NON-HTTPS]&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;upstream&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;app_server&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;127.0.0.1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8000&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;fail_timeout=1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;listen&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;80&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;client_max_body_size&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;4M&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;server_name&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/media/&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;keepalive_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;root&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/static/&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;keepalive_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;root&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/favicon.ico&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite/media/images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;access_log&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;^~&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/robots.txt&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite/media&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+		&lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;X-Forwarded-For&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Host&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$http_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_redirect&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+			
+		&lt;span class=&quot;kn&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;(!-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$request_filename&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://app_server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+			&lt;span class=&quot;kn&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;adding-nginx-site-specific-level-configuration-file-https&quot;&gt;Adding NGINX “site-specific” level configuration file [HTTPS]&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;nginx&quot;&gt;&lt;span class=&quot;k&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;listen&lt;/span&gt;	&lt;span class=&quot;mi&quot;&gt;443&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;default_server&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ssl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;ssl_certificate&lt;/span&gt;			&lt;span class=&quot;s&quot;&gt;/home/ubuntu/path/to/cert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;ssl_certificate_key&lt;/span&gt;		&lt;span class=&quot;s&quot;&gt;/home/ubuntu/path/to/key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;client_max_body_size&lt;/span&gt;	&lt;span class=&quot;s&quot;&gt;4M&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;kn&quot;&gt;server_name&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/media/&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;keepalive_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;root&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/static/&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;keepalive_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;root&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/favicon.ico&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite/static/images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;access_log&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;^~&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/robots.txt&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;expires&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;alias&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/home/ubuntu/mywebsite/static/robots.txt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+	&lt;span class=&quot;kn&quot;&gt;location&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+		&lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;X-Forwarded-For&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Host&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$http_host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_set_header&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;X-Forwarded-Protocol&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$scheme&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_redirect&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_read_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;kn&quot;&gt;proxy_connect_timeout&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+		&lt;span class=&quot;kn&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;(!-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$request_filename&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+			&lt;span class=&quot;kn&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;http://app_server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+			&lt;span class=&quot;kn&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+		&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;installing-supervisor-on-ubuntu-1404&quot;&gt;Installing Supervisor on UBUNTU 14.04&lt;/h3&gt;
+
+&lt;h3 id=&quot;updating-supervisor-config&quot;&gt;Updating Supervisor Config&lt;/h3&gt;
+
+&lt;h3 id=&quot;final-comments&quot;&gt;Final Comments&lt;/h3&gt;
+
+</description>
+        <pubDate>Mon, 14 Jul 2014 00:00:00 -0400</pubDate>
+        <link>/setting-up-a-django-website-using-nginx-and-gunicorn</link>
+        <guid isPermaLink="true">/setting-up-a-django-website-using-nginx-and-gunicorn</guid>
+      </item>
+    
+      <item>
+        <title>Using Django Tastypie And Backbone.js To Create RESTful APIs</title>
+        <description>&lt;p&gt;Over the years, &lt;a href=&quot;http://www.mathandpencil.com&quot;&gt;Math and Pencil&lt;/a&gt; has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to update data on the server.&lt;/p&gt;
 
 &lt;p&gt;There are a few different frameworks for setting up RESTful API calls using Django’s ORM. For Postgres/MySQL backends, the following frameworks are available&lt;/p&gt;
 
@@ -100,13 +252,13 @@ First, you’ll need to import &lt;code&gt;jquery&lt;/code&gt;, &lt;code&gt;back
 
 &lt;span class=&quot;nx&quot;&gt;EXAMPLE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;COLLECTIONS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;You can open up the Chrome console and call fetch on this collection and the use the collection’s toJSON() method to confirm your new REST API is returning data from the server.&lt;/p&gt;
+&lt;p&gt;You can open up the Chrome console and call fetch on this collection and then use the collection’s toJSON() method to confirm your new REST API is returning data from the server.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/images/posts/backbone_console.png&quot; alt=&quot;My helpful screenshot&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;It is important to understand that in my example, &lt;a href=&quot;https://github.com/PaulUithol/backbone-tastypie&quot;&gt;backbone_tastypie.js&lt;/a&gt; is doing the heavy lifting formatting the data that is being returned from the API into the Backbone collection. This file is absolutely required for the tutorial to work.&lt;/p&gt;
 
-&lt;p&gt;Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views, one that list the content of each model, and one that listens for a reset on the the collection and then renders the app on this event: &lt;/p&gt;
+&lt;p&gt;Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset event on the the collection and then renders the app on this event: &lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;EXAMPLE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;VIEWS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ExampleListItem&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Backbone&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;View&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;extend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt; 
 	
@@ -158,7 +310,7 @@ First, you’ll need to import &lt;code&gt;jquery&lt;/code&gt;, &lt;code&gt;back
 	
 &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;You’ll may also notice in my &lt;code&gt;accounts/index.html&lt;/code&gt; that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:&lt;/p&gt;
+&lt;p&gt;You’ll also notice in my &lt;code&gt;accounts/index.html&lt;/code&gt; that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;
 EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
@@ -173,7 +325,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 &lt;h2 id=&quot;adding-custom-methods&quot;&gt;Adding custom methods&lt;/h2&gt;
 
-&lt;p&gt;REST is great, but lets face it, it can not solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file &lt;code&gt;handle_login&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;REST is great, but lets face it, it cannot solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file &lt;code&gt;handle_login&lt;/code&gt;.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UserResource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModelResource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
 		
@@ -211,7 +363,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 &lt;h2 id=&quot;limiting-access-to-data&quot;&gt;Limiting Access To Data&lt;/h2&gt;
 
-&lt;p&gt;By default, the API I created allows any authenicated/non-authenicated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can overide. For example, lets say you have &lt;code&gt;cat&lt;/code&gt; model that has a &lt;code&gt;user&lt;/code&gt; attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that create cats can update their cat objects, you would add the following methods to the Tastypie model resource class:&lt;/p&gt;
+&lt;p&gt;By default, the API I created allows any authenticated/non-authenticated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can override. For example, lets say you have &lt;code&gt;cat&lt;/code&gt; model that has a &lt;code&gt;user&lt;/code&gt; attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that created cats can update their cat objects, you would add the following methods to the Tastypie model resource class:&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;authorized_create_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;object_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
 	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;object_list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -249,7 +401,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 	&lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;date&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;date&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;strftime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;%m/&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%d&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 	&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;A final note - I am not going to go over authorization or authenication, but there are a number of options that can be found in Tastypie’s &lt;a href=&quot;http://django-tastypie.readthedocs.org/en/latest/authentication.html&quot;&gt;authorization&lt;/a&gt; and &lt;a href=&quot;http://django-tastypie.readthedocs.org/en/latest/authentication.html&quot;&gt;authenication&lt;/a&gt; classes. Sometimes, it is also useful to be able to serialize an ORM model/queryset using Tastypie’s serialization methods. I could not find an easy way to do this, so I wrote the following two custom methods that seem to work great. I copy them into almost every Django project I start these days.&lt;/p&gt;
+&lt;p&gt;A final note - I am not going to go over authorization or authentication, but there are a number of options that can be found in Tastypie’s &lt;a href=&quot;http://django-tastypie.readthedocs.org/en/latest/authentication.html&quot;&gt;authorization&lt;/a&gt; and &lt;a href=&quot;http://django-tastypie.readthedocs.org/en/latest/authentication.html&quot;&gt;authenication&lt;/a&gt; classes. Sometimes, it is also useful to be able to serialize an ORM model/queryset using Tastypie’s serialization methods. I could not find an easy way to do this, so I wrote the following two custom methods that seem to work great. I copy them into almost every Django project I start these days.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;serialize_all_resource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;content_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;application/json&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
 	&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -271,7 +423,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 &lt;p&gt;If you are interested in Django, machine learning, math, and/or statistics you can following me on twitter: &lt;a href=&quot;https://www.twitter.com/josephmisiti&quot;&gt;@josephmisiti&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;The code for this tutorial can be forked on from our &lt;a href=&quot;https://github.com/mathandpencil/django_tastypie_tutorial&quot;&gt;github account&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The code for this tutorial can be forked from our &lt;a href=&quot;https://github.com/mathandpencil/django_tastypie_tutorial&quot;&gt;github account&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com&lt;/p&gt;
 </description>
@@ -515,8 +667,8 @@ functions, you are going to need access to a Django request. You can use this cl
 &lt;p&gt;If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com&lt;/p&gt;
 </description>
         <pubDate>Tue, 08 Jul 2014 00:00:00 -0400</pubDate>
-        <link>/unit-testing-best-practices-in-django%20copy</link>
-        <guid isPermaLink="true">/unit-testing-best-practices-in-django%20copy</guid>
+        <link>/unit-testing-best-practices-in-django</link>
+        <guid isPermaLink="true">/unit-testing-best-practices-in-django</guid>
       </item>
     
       <item>

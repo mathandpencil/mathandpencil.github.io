@@ -3,7 +3,7 @@
 	<head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Using Django Tastypie To Create RESTful URLs</title>
+	<title>Using Django Tastypie And Backbone.js To Create RESTful APIs</title>
 	<meta name="viewport" content="width=device-width">
 	<meta name="description" content="Bringing Your Ideas To Life">
 	<link rel="canonical" href="/using-django-tastypie-to-create-RESTful-APIs">
@@ -46,11 +46,11 @@
 	<header class="post-header">
 		<p class="meta">Jul 12, 2014</p>
 		
-		<h1>Using Django Tastypie To Create RESTful URLs</h1>
+		<h1>Using Django Tastypie And Backbone.js To Create RESTful APIs</h1>
 	</header>
 	
 	<article class="post-content">
-		<p>Over the years, <a href="http://www.mathandpencil.com">Math and Pencil</a> has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to updated data on the server.</p>
+		<p>Over the years, <a href="http://www.mathandpencil.com">Math and Pencil</a> has gone from developing Django applications from mostly backend applications written in all Python to developing large front-end applications using Backbone.js + RESTful APIs. There are a lot of reasons for this, but in general, one-page javascript apps tend to flow a lot more smoothly - you can avoid full page requests using Backbone.history, and you can write a lot less code by using RESTful API calls to update data on the server.</p>
 
 <p>There are a few different frameworks for setting up RESTful API calls using Django’s ORM. For Postgres/MySQL backends, the following frameworks are available</p>
 
@@ -142,13 +142,13 @@ First, you’ll need to import <code>jquery</code>, <code>backbone</code>, <code
 
 <span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">COLLECTIONS</span><span class="p">.</span><span class="nx">Users</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Users</span><span class="p">;</span></code></pre></div>
 
-<p>You can open up the Chrome console and call fetch on this collection and the use the collection’s toJSON() method to confirm your new REST API is returning data from the server.</p>
+<p>You can open up the Chrome console and call fetch on this collection and then use the collection’s toJSON() method to confirm your new REST API is returning data from the server.</p>
 
 <p><img src="/images/posts/backbone_console.png" alt="My helpful screenshot" /></p>
 
 <p>It is important to understand that in my example, <a href="https://github.com/PaulUithol/backbone-tastypie">backbone_tastypie.js</a> is doing the heavy lifting formatting the data that is being returned from the API into the Backbone collection. This file is absolutely required for the tutorial to work.</p>
 
-<p>Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views, one that list the content of each model, and one that listens for a reset on the the collection and then renders the app on this event: </p>
+<p>Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset event on the the collection and then renders the app on this event: </p>
 
 <div class="highlight"><pre><code class="javascript"><span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">VIEWS</span><span class="p">.</span><span class="nx">ExampleListItem</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span> 
 	
@@ -200,7 +200,7 @@ First, you’ll need to import <code>jquery</code>, <code>backbone</code>, <code
 	
 <span class="p">});</span></code></pre></div>
 
-<p>You’ll may also notice in my <code>accounts/index.html</code> that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:</p>
+<p>You’ll also notice in my <code>accounts/index.html</code> that I have to force a reset on the collection by passing the reset=true parameter to the fetch call:</p>
 
 <p><code>
 EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
@@ -215,7 +215,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <h2 id="adding-custom-methods">Adding custom methods</h2>
 
-<p>REST is great, but lets face it, it can not solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file <code>handle_login</code>.</p>
+<p>REST is great, but lets face it, it cannot solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file <code>handle_login</code>.</p>
 
 <div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">UserResource</span><span class="p">(</span><span class="n">ModelResource</span><span class="p">):</span>
 		
@@ -253,7 +253,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <h2 id="limiting-access-to-data">Limiting Access To Data</h2>
 
-<p>By default, the API I created allows any authenicated/non-authenicated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can overide. For example, lets say you have <code>cat</code> model that has a <code>user</code> attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that create cats can update their cat objects, you would add the following methods to the Tastypie model resource class:</p>
+<p>By default, the API I created allows any authenticated/non-authenticated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can override. For example, lets say you have <code>cat</code> model that has a <code>user</code> attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that created cats can update their cat objects, you would add the following methods to the Tastypie model resource class:</p>
 
 <div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">authorized_create_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
 	<span class="k">return</span> <span class="n">object_list</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">bundle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
@@ -291,7 +291,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 	<span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
 	<span class="k">return</span> <span class="n">bundle</span></code></pre></div>
 
-<p>A final note - I am not going to go over authorization or authenication, but there are a number of options that can be found in Tastypie’s <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authorization</a> and <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authenication</a> classes. Sometimes, it is also useful to be able to serialize an ORM model/queryset using Tastypie’s serialization methods. I could not find an easy way to do this, so I wrote the following two custom methods that seem to work great. I copy them into almost every Django project I start these days.</p>
+<p>A final note - I am not going to go over authorization or authentication, but there are a number of options that can be found in Tastypie’s <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authorization</a> and <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authenication</a> classes. Sometimes, it is also useful to be able to serialize an ORM model/queryset using Tastypie’s serialization methods. I could not find an easy way to do this, so I wrote the following two custom methods that seem to work great. I copy them into almost every Django project I start these days.</p>
 
 <div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">serialize_all_resource</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&quot;application/json&quot;</span><span class="p">):</span>
 	<span class="n">res</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
@@ -313,7 +313,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <p>If you are interested in Django, machine learning, math, and/or statistics you can following me on twitter: <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a></p>
 
-<p>The code for this tutorial can be forked on from our <a href="https://github.com/mathandpencil/django_tastypie_tutorial">github account</a></p>
+<p>The code for this tutorial can be forked from our <a href="https://github.com/mathandpencil/django_tastypie_tutorial">github account</a></p>
 
 <p>If you need help with Django or Machine Learning, contact my firm at info@mathandpencil.com</p>
 

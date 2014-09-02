@@ -10,6 +10,6 @@ username: "mathandpencil"
 markdown: kramdown
 permalink: /:title
 
-baseurl: "http://blog.mathandpencil.com"
-#baseurl: ""
+#baseurl: "http://blog.mathandpencil.com"
+baseurl: ""
 
