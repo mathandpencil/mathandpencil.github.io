@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Twitter's Typeahead And A Simple Autocomplete Solution</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/twitter-typahead-and-an-simple-autocomplete-solution">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/twitter-typahead-and-an-simple-autocomplete-solution");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Jul 1, 2014</p>
+		
+		<h1>Twitter's Typeahead And A Simple Autocomplete Solution</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I recently had to implement an auto-complete feature on a website I was building. The website
+uses <a href="">select2</a> for all selects/inputs and select2 does have any auto-complete feature that works
+well except it appears to be impossible to pre-load the input with a selected, saved value.</p>
+
+<p>After wasting many hours trying to get <code>initSelection</code> to fire, with not success, I moved on and decide to
+use Twitter’s autocomplete solution known as <a href="">Typeahead</a></p>
+
+<div class="highlight"><pre><code class="javascript"><span class="nx">initSelection</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">element</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// the input tag has a value attribute preloaded that points to a preselected movie&#39;s id</span>
+        <span class="c1">// this function resolves that id attribute to an object that select2 can render</span>
+        <span class="c1">// using its formatResult renderer - that way the movie name is shown preselected</span>
+        <span class="kd">var</span> <span class="nx">id</span><span class="o">=</span><span class="nx">$</span><span class="p">(</span><span class="nx">element</span><span class="p">).</span><span class="nx">val</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">id</span><span class="o">!==</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">(</span><span class="s2">&quot;http://api.rottentomatoes.com/api/public/v1.0/movies/&quot;</span>
+			<span class="o">+</span> <span class="nx">id</span> <span class="o">+</span><span class="s2">&quot;.json&quot;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="nx">data</span><span class="o">:</span> <span class="p">{</span>
+                    <span class="nx">apikey</span><span class="o">:</span> <span class="s2">&quot;ju6z9mjyajq2djue3gbvv26t&quot;</span>
+                <span class="p">},</span>
+                <span class="nx">dataType</span><span class="o">:</span> <span class="s2">&quot;jsonp&quot;</span>
+            <span class="p">}).</span><span class="nx">done</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span> <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">},</span></code></pre></div>
+
+<p>I finally did get Typeahead to work properly to close the feature, but it certainly was not simple. In case any other people are trying to do the same thing, I have attempted to document the easiet way to integrate a auto-complete solution using this library.</p>
+
+<p>The first step to setting up Typeahead is to download the single, minified js file and adding it your assets. After it has been added to your project, you need to setup an API call that will return the search results. I am currently using Django Tastypie for most of my APIs, create my search API endpoint there:</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">search_venues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">method_check</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;get&#39;</span><span class="p">])</span>	
+		<span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="n">results</span><span class="p">[</span><span class="s">&#39;venues&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+		
+		<span class="n">query</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">REQUEST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;q&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span>
+			<span class="n">venues</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">venues</span> <span class="o">=</span> <span class="n">EventVenue</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">name__istartswith</span><span class="o">=</span><span class="n">query</span><span class="p">)</span> 
+			<span class="o">|</span> <span class="n">Q</span><span class="p">(</span><span class="n">space_name__istartswith</span><span class="o">=</span><span class="n">query</span><span class="p">))</span>
+			
+		<span class="k">for</span> <span class="n">venue</span> <span class="ow">in</span> <span class="n">venues</span><span class="p">:</span>
+			<span class="n">results</span><span class="p">[</span><span class="s">&#39;venues&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+				<span class="s">&#39;id&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+				<span class="s">&#39;name&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+				<span class="s">&#39;space_name&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">space_name</span><span class="p">,</span>
+				<span class="s">&#39;address&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+				<span class="s">&#39;city&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">city</span><span class="p">,</span>
+				<span class="s">&#39;state&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">state</span><span class="p">,</span>
+				<span class="s">&#39;zipcode&#39;</span> <span class="p">:</span> <span class="n">venue</span><span class="o">.</span><span class="n">zipcode</span><span class="p">,</span>
+			<span class="p">})</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_response</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span></code></pre></div>
+
+<p>After the API endpoint has been defined and tested, it is pretty easy to setup Typeahead. Here is a snippet of
+code I used to point Typeahead at the new API endpoint:</p>
+
+<div class="highlight"><pre><code class="javascript"><span class="nx">GLOBALS</span><span class="p">.</span><span class="nx">Models</span><span class="p">.</span><span class="nx">venue_auto_complete</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Bloodhound</span><span class="p">({</span>
+    
+	<span class="nx">datumTokenizer</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">datum</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">Bloodhound</span><span class="p">.</span><span class="nx">tokenizers</span><span class="p">.</span><span class="nx">whitespace</span><span class="p">(</span><span class="nx">datum</span><span class="p">.</span><span class="nx">value</span><span class="p">);</span>
+    <span class="p">},</span>
+	
+    <span class="nx">queryTokenizer</span><span class="o">:</span> <span class="nx">Bloodhound</span><span class="p">.</span><span class="nx">tokenizers</span><span class="p">.</span><span class="nx">whitespace</span><span class="p">,</span>
+
+    <span class="nx">remote</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;/api/v1/venue/search/?q=%QUERY&amp;format=json&#39;</span><span class="p">,</span>
+        <span class="nx">filter</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">results</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">$</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">results</span><span class="p">.</span><span class="nx">venues</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">venue</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="nx">name</span> <span class="o">:</span> <span class="nx">venue</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+					<span class="nx">space_name</span> <span class="o">:</span>  <span class="nx">venue</span><span class="p">.</span><span class="nx">space_name</span><span class="p">,</span>
+					<span class="nx">address</span> <span class="o">:</span> <span class="nx">venue</span><span class="p">.</span><span class="nx">address</span><span class="p">,</span>
+					<span class="nx">id</span> <span class="o">:</span> <span class="nx">venue</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span>
+                <span class="p">};</span>
+            <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="nx">GLOBALS</span><span class="p">.</span><span class="nx">Models</span><span class="p">.</span><span class="nx">venue_auto_complete</span><span class="p">.</span><span class="nx">initialize</span><span class="p">();</span></code></pre></div>
+
+<p>I also setup a global dictionary to pass to the Typeahead constructor:</p>
+
+<div class="highlight"><pre><code class="javascript"><span class="nx">GLOBALS</span><span class="p">.</span><span class="nx">Globals</span><span class="p">[</span><span class="s1">&#39;auto_complete_options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+	
+	<span class="nx">name</span><span class="o">:</span> <span class="s1">&#39;products&#39;</span><span class="p">,</span>
+	
+	<span class="nx">displayKey</span><span class="o">:</span> <span class="s1">&#39;space_name&#39;</span><span class="p">,</span>
+	
+	<span class="nx">source</span><span class="o">:</span> <span class="nx">GLOBALS</span><span class="p">.</span><span class="nx">Models</span><span class="p">.</span><span class="nx">venue_auto_complete</span><span class="p">.</span><span class="nx">ttAdapter</span><span class="p">(),</span>
+	
+	<span class="nx">restrictInputToDatum</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+	
+	<span class="nx">templates</span><span class="o">:</span> <span class="p">{</span>
+		<span class="nx">suggestion</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">context</span><span class="p">)</span> <span class="p">{</span> 
+			<span class="kd">var</span> <span class="nx">html</span> <span class="o">=</span> <span class="s1">&#39;&lt;div class=&quot;js-suggestion&quot;&gt;&#39;</span>
+			<span class="nx">html</span> <span class="o">=</span>  <span class="nx">html</span> <span class="o">+</span> <span class="s2">&quot;&lt;div class=&#39;js-space-name&#39;&gt;&quot;</span> <span class="o">+</span> <span class="nx">context</span><span class="p">.</span><span class="nx">space_name</span> <span class="o">+</span> <span class="s2">&quot;&lt;/div&gt;&quot;</span><span class="p">;</span>
+			<span class="nx">html</span> <span class="o">=</span>  <span class="nx">html</span> <span class="o">+</span> <span class="s2">&quot;&lt;div class=&#39;js-name&#39;&gt;&quot;</span> <span class="o">+</span> <span class="nx">context</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;&lt;/div&gt;&quot;</span><span class="p">;</span>
+			<span class="nx">html</span> <span class="o">=</span>  <span class="nx">html</span> <span class="o">+</span> <span class="s2">&quot;&lt;div class=&#39;js-address&#39;&gt;&quot;</span> <span class="o">+</span> <span class="nx">context</span><span class="p">.</span><span class="nx">address</span> <span class="o">+</span> <span class="s2">&quot;&lt;/div&gt;&quot;</span><span class="p">;</span>
+			<span class="nx">html</span> <span class="o">=</span>  <span class="nx">html</span> <span class="o">+</span> <span class="s2">&quot;&lt;div&gt;&quot;</span>
+			<span class="k">return</span> <span class="nx">html</span><span class="p">;</span> 
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<p>The one issue I ran into is Typeahead does not provide the ability out of the box to display the name of the venue but then store the id of the venue to send the server. The <code>displayKey</code> attribute controls which dropdown is selected and shows up in the box, but this doesnt not work correctly. I am actually really surprised that this is the default setting because I would imagine almost everyone would want the selected item from the dropdown to display a name, but store an database id. Regardless,  this snippet of code will fix the issue:</p>
+
+<div class="highlight"><pre><code class="javascript"><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;document&quot;</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+
+	<span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#js-search-venue&quot;</span><span class="p">).</span><span class="nx">typeahead</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">GLOBALS</span><span class="p">.</span><span class="nx">Globals</span><span class="p">[</span><span class="s1">&#39;auto_complete_options&#39;</span><span class="p">]);</span>
+	<span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#js-search-venue&quot;</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;typeahead:selected&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">datum</span><span class="p">)</span> <span class="p">{</span>   
+		<span class="nx">$</span><span class="p">(</span><span class="s2">&quot;input[name=venue_pk]&quot;</span><span class="p">).</span><span class="nx">val</span><span class="p">(</span><span class="nx">datum</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+	<span class="p">});</span>
+<span class="p">});</span></code></pre></div>
+
+<p>My solution to storing the id involves adding a hidden input <code>&lt;input name="venue_pk" type="hidden"&gt;</code>, and then adding a callback that listens to the selected event in the dropdown list. When an item is selected, I add the selected id to the hidden input and then an able to send it to the server in an HTTP POST call for saving in the database.</p>
+
+<p>Anyways, this solution works for me, although it seems like a hack. If anyone else knows of a better way to do this, please let me know. There are multiple github issues <a href="http://stackoverflow.com/questions/12389948/twitter-bootstrap-typeahead-id-label">I</a> <a href="https://github.com/twitter/typeahead.js/issues/193">have</a> <a href="http://stackoverflow.com/questions/20426718/bootstrap-typeahead-add-value-to-hidden-field">found</a> dealing with this issue, but this seemed like the simpliest solution to me.</p>
+
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

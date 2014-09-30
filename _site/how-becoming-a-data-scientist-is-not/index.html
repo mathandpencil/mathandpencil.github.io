@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Why becoming a data scientist is NOT actually easier than you think</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/how-becoming-a-data-scientist-is-not">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/how-becoming-a-data-scientist-is-not");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Oct 16, 2012</p>
+		
+		<h1>Why becoming a data scientist is NOT actually easier than you think</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I was just doing some late night reading and came across this article:</p>
+
+<p><a href="http://gigaom.com/data/why-becoming-a-data-scientist-might-be-easier-than-you-think/">Link to article here</a></p>
+
+<p>TL;DR - You can take the ML course on Coursera and you’re magically a data scientist, because three really intelligent people did it. I disagree.</p>
+
+<p>I’m not claiming the people referenced in this article are not data scientists who score high in Kaggle competitions. They’re probably really intelligent people who picked up a new skill and excelled at it (although one was already an actuary, so he is basically doing machine learning in some form already).</p>
+
+<p>Here is my problem with it - being a data scientist usually requires a much larger skill set than a basic understanding of a few learning algorithms. I’m taking the Coursera ML course right now, and I think it is great! Here is what I didnt learn though:</p>
+
+<p><strong>Programming Languages and Other Technologies:</strong></p>
+
+<p>Most data scientists and the companies that employ them are not using Matlab/Octave. They have backend web services written in Java, Python, Scala, or Ruby. These languages are not covered. Python has libraries like Scipy, Numpy, and Scikit-learn that are great for solving numerical problems. Java has a bunch of libraries too like the Mahout math library [2]. R is used by most statisticians (again not covered in the course). When your boss (or a customer) comes to you and says you need to integrate an algorithm into a pre-existing web service ( example -they need a recommendation engine), and you say “I only know Matlab” that is going be a huge problem. You don’t just pick up Java/Python/C++/Scala/whatever in a few days on the job. You have to be somewhat familiar with these languages to understand large, pre-existing code bases. It wouldn’t hurt to have a decent understanding of existing technologies like Django, ROR, Groovy, Lift, etc. because you’re going to have to integrate your amazing algorithm into one of them. If you only know Python but the rest of the company is using Java, you better know about Thrift, Avro, Google ProtoBufs or something smiliar. I digress …</p>
+
+<p><strong>Big Data Software:</strong></p>
+
+<p>Most data scientists are working on problems that can’t be run on single 512MB RAM machine (the data sets on Coursera are tiny). They have large data sets that require distributed processing. To do this, you need to understand map-reduce, distributed files systems and be able to utilize Hadoop. Even if you don’t know Java, you still need to know that Hadoop streaming exists, how do use it, and know a scripting language (Hadoop streaming does not currently support Matlab or Octave). Again - not something you just pick up in a few days. If you’re going to be doing distributed machine learning, you will probably want to use Mahout. Some of the algorithms covered in the Coursera course have distributed versions implemented into Mahout (Clustering, PCA, Regression), but most do not exist yet (SVM, Distributed-User-Recommendations, and cross-validation/performance metrics for distributed versions of the algorithms). You’re going to have to know Java (and the Hadoop/Mahout APIs) to implement them from scratch, or use a different algorithm that you may or may not be familiar with. Even if you do not need to use a distributed algorithm, it would probably be good to know how to spin up a 64GB instance on ec2, login, install some software, and run your algorithm on the cloud.</p>
+
+<p><strong>Other useful learning algorithms</strong></p>
+
+<p>Coursera skipped over Bayesian learning [1]. A lot of systems use this (or some form of this) in production, but you would know nothing about it (I’m not saying you couldn’t learn it, but I am obviously disagreeing with this article).</p>
+
+<p><strong>Feature Extraction:</strong></p>
+
+<p>You can use every algorithm from the ML course and build hundreds of different classifiers to solve a real-world problem (you could even combine them!), but if your features suck, the performance of your classifier is going to suck also. Extracting good features usually requires a deep understanding of the problem, the underlying distributions of the data, and/or an familiarity of how the data is being generated. It might help to also know about Convolution, Wavelets, Time Series Analysis, Digital Signal Processing, Fourier Transforms, etc. Feature extraction could be a whole Coursera course by itself.</p>
+
+<p><strong>Data cleaning:</strong></p>
+
+<p>Data preprocessing - Coursera sets up all the data sets for you. They even write the scripts to load the data. (see week 6 SVM email classification, they wrote all of the regex expressions to clean the emails for you) That doesn’t work in the real world. Real-world data is ugly, and unstructured. You need to know regular expressions and UNIX commands like sed, grep, tr, cut, sort, awk, and map/reduce to clean these data sets up and put them into “Coursera” format. Notice I said UNIX commands, which implies you need to be somewhat comfortable on UNIX/LINUX, which may be a steep learning curve if you’re currently using Windows.</p>
+
+<p><strong>Probability &amp; Statistics</strong></p>
+
+<p>The ML course touches on some of these topics, but real-world problems usually require a much deeper understanding. Examples:</p>
+
+<p>Are your features dependent or independent (Chi Squared test).</p>
+
+<p>How do you interpret p-values?</p>
+
+<p>How do you set up confidence intervals?</p>
+
+<p>What is the F-test?</p>
+
+<p>What is standard error?</p>
+
+<p>Should I use AROCs to test the performance of this algorithm?</p>
+
+<p>What is a ROC curve?</p>
+
+<p>What is Hypothesis testing and when can you / do you use it.</p>
+
+<p>I could go on - but you get the point . It’s important to know this stuff and know how and when to apply it.</p>
+
+<p><strong>Databases:</strong></p>
+
+<p>Where is all this data being stored? It’s fine in flat files for the purposes of the ML course, but when you show up to your first day at the job, it’s going to be stored in MySQL, Postgres, MongoDB, Casandra, CouchDB, and/or on the HDFS. Your going to have to improvise.</p>
+
+<p><strong>Visualization:</strong></p>
+
+<p>If you think Matlab 2D plots are awesome, check out D3.js. Oh, I forgot to mention, you need to know javascript, functional programming, and the general learning curve for the D3.js APIs.</p>
+
+<p><strong>Debugging:</strong></p>
+
+<p>Debugging is briefly covered in the ML course (Neural Networks - Gradient Checking, which was an optional programming excerise), but when an algorithm isn’t working correctly, you’re going to have to quit treating it like a black-box and dive in. That’s when shit gets real - you actually do need to know about Conjungate Gradients, Partial Differential Equations, Numerical Analysis, Lagrange Multipliers, Numerical Linear Alegbra, Convex Optimization, Vector Calculus, Stochastic Processes, and potentially a lot of other subjects. The ML course is only 8 weeks, and they can’t cover these topics, because they require years of experience, and probably some form of technical training beyond a BS in whatever. You could just ask the guy with a few years more experience that is about to take your job though.</p>
+
+<p><strong>Intuition</strong></p>
+
+<p>Beyond what I have highlighted above, being a good data scientist (usually) takes years of experience. It requires more than just knowing how machine learning algorithms work. It’s knowing what questions to ask and how to convey the answers to investors, management, and customers. No online course, even from Stanford professors, is going to be able to teach you that.</p>
+
+<p>Discussion on HN <a href="https://news.ycombinator.com/item?id=4658391">here</a></p>
+
+<p>You can follow me on twitter: <a href="https://twitter.com/josephmisiti">@josephmisiti</a></p>
+
+<p>[1] <a href="http://en.wikipedia.org/wiki/Bayesian_inference">http://en.wikipedia.org/wiki/Bayesian_inference</a></p>
+
+<p>[2] <a href="https://github.com/apache/mahout/tree/trunk/math">https://github.com/apache/mahout/tree/trunk/math</a></p>
+
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

@@ -32,7 +32,7 @@ a {
 }
 a:hover,
 .site-nav a:hover {
-	color: #a2d28d;
+	color: #61c1cc;
 }
 
 a,
@@ -137,7 +137,7 @@ li,
 	font-size: 15px;
 }
 .site-footer p {
-	font-family:"Pacifico";
+	font-family:"Arvo";
 	letter-spacing:1px;
 	text-align:right;
 	text-transform:;

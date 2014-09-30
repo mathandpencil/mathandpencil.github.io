@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Statistics in MongoDB</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/statistics-in-mongodb">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/statistics-in-mongodb");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Dec 26, 2013</p>
+		
+		<h1>Statistics in MongoDB</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I am creating this blog post as a quick reminder of how to check the size of my database:</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="o">&gt;</span> <span class="n">db</span><span class="o">.</span><span class="n">stats</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+ 
+<span class="p">{</span>
+	<span class="s2">&quot;db&quot;</span> <span class="p">:</span> <span class="s2">&quot;sqdev&quot;</span><span class="p">,</span>
+	<span class="s2">&quot;collections&quot;</span> <span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+	<span class="s2">&quot;objects&quot;</span> <span class="p">:</span> <span class="mi">31509618</span><span class="p">,</span>
+	<span class="s2">&quot;avgObjSize&quot;</span> <span class="p">:</span> <span class="mi">704</span><span class="o">.</span><span class="mi">2919142974059</span><span class="p">,</span>
+	<span class="s2">&quot;dataSize&quot;</span> <span class="p">:</span> <span class="mi">21671844</span><span class="p">,</span>
+	<span class="s2">&quot;storageSize&quot;</span> <span class="p">:</span> <span class="mi">24783691</span><span class="p">,</span>
+	<span class="s2">&quot;numExtents&quot;</span> <span class="p">:</span> <span class="mi">163</span><span class="p">,</span>
+	<span class="s2">&quot;indexes&quot;</span> <span class="p">:</span> <span class="mi">44</span><span class="p">,</span>
+	<span class="s2">&quot;indexSize&quot;</span> <span class="p">:</span> <span class="mi">25900801</span><span class="p">,</span>
+	<span class="s2">&quot;fileSize&quot;</span> <span class="p">:</span> <span class="mi">64915456</span><span class="p">,</span>
+	<span class="s2">&quot;nsSizeMB&quot;</span> <span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+	<span class="s2">&quot;ok&quot;</span> <span class="p">:</span> <span class="mi">1</span>
+<span class="p">}</span></code></pre></div>
+
+<p>Per the documentation @ 10Gen, the results of this command return kilobytes[1]. So just divide</p>
+
+<p>everything by (1024^2) to get gigobytes.</p>
+
+<p>31509618/(1024^2) = ~31Gs of data</p>
+
+<p>25900801/(1024^2) = ~25G of indexes (WTF??)</p>
+
+<p>[1] http://docs.mongodb.org/manual/reference/database-statistics/</p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>
