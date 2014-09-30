@@ -196,10 +196,11 @@ li,
 
 
 .site-title {
+	cursor:default;
 	float:left;
 	font-family:"Arvo",sans-serif;
 	font-size: 16px;
-	margin-top:10px;
+	margin-top:18px;
 }
 
 /* Post styles */
