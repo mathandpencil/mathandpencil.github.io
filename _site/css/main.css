@@ -52,7 +52,7 @@ li,
 .wrap:after { clear: both; }
 .wrap {
 	margin: 0 auto;
-	max-width: 800px;
+	max-width: 1500px;
 	padding: 0 30px;
 	zoom: 1;
 }
@@ -70,6 +70,7 @@ li,
 .site-nav {
 	float: right;
 	line-height: 56px;
+	padding-top:10px;
 }
 
 .site-nav .menu-icon {
@@ -416,6 +417,11 @@ li,
 		float: none;
 		width: auto;
 	}
+	
+	.wrap {
+		margin: 0 auto;
+		max-width: none !important;
+		width:100%;
 }
 
 @media screen and (max-width: 600px) {
