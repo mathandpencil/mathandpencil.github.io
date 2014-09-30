@@ -196,6 +196,7 @@ li,
 
 
 .site-title {
+	float:left;
 	font-family:"Arvo",sans-serif;
 	font-size: 16px;
 	margin-top:10px;
