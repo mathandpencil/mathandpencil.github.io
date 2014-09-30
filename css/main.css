@@ -70,6 +70,7 @@ li,
 .site-nav {
 	float: right;
 	line-height: 56px;
+	margin-top:18px;
 }
 
 .site-nav .menu-icon {
