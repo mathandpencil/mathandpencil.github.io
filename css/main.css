@@ -32,7 +32,7 @@ a {
 }
 a:hover,
 .site-nav a:hover {
-	color: #a2d28d;
+	color: #61c1cc;
 }
 
 a,
@@ -52,9 +52,10 @@ li,
 .wrap:after { clear: both; }
 .wrap {
 	margin: 0 auto;
-	max-width: 800px;
+	max-width: 1500px;
 	padding: 0 30px;
 	zoom: 1;
+	width:90%;
 }
 
 
@@ -70,6 +71,7 @@ li,
 .site-nav {
 	float: right;
 	line-height: 56px;
+	padding-top:10px;
 }
 
 .site-nav .menu-icon {
@@ -137,7 +139,7 @@ li,
 	font-size: 15px;
 }
 .site-footer p {
-	font-family:"Pacifico";
+	font-family:"Arvo";
 	letter-spacing:1px;
 	text-align:right;
 	text-transform:;
@@ -180,7 +182,7 @@ li,
 .post-header .meta {
 	color: rgba(0,0,0,0.4);
 	display: block;
-	font-family:"Pacifico",sans-serif;
+	font-family:"Arvo",sans-serif;
 	font-size: 16px;
 	letter-spacing:1px;
 }
@@ -194,6 +196,14 @@ li,
 	display:inline-block !important;
 }
 
+
+.site-title {
+	cursor:default;
+	float:left;
+	font-family:"Arvo",sans-serif;
+	font-size: 16px;
+	margin-top:18px;
+}
 
 /* Post styles */
 /* ----------------------------------------------------------*/
@@ -408,6 +418,11 @@ li,
 		float: none;
 		width: auto;
 	}
+	
+	.wrap {
+		margin: 0 auto;
+		max-width: none !important;
+		width:100% !important;
 }
 
 @media screen and (max-width: 600px) {
