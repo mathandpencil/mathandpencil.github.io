@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Sorting Backbone Collections By Attributes Other Than Model ID</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/sorting-backbone-collections-by-attribute">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/sorting-backbone-collections-by-attribute");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Nov 5, 2014</p>
+		
+		<h1>Sorting Backbone Collections By Attributes Other Than Model ID</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>By default, <code>Backbone.Collection</code> is sorted by model id (usually from the database). If you want to sort by another attribute, you need to define a <code>comparator</code> function. Here is an example that words for a <code>boolean</code> value</p>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">Tags</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+	<span class="nx">sort_key</span><span class="o">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="c1">// default sort key</span>
+
+	<span class="nx">comparator</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="o">!</span><span class="nx">item</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">sort_key</span><span class="p">);</span>
+	<span class="p">},</span>
+	
+	<span class="nx">sortByField</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">fieldName</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">this</span><span class="p">.</span><span class="nx">sort_key</span> <span class="o">=</span> <span class="nx">fieldName</span><span class="p">;</span>
+		<span class="k">this</span><span class="p">.</span><span class="nx">sort</span><span class="p">();</span>
+	<span class="p">},</span>
+
+	<span class="nx">model</span><span class="o">:</span> <span class="nx">FETCHER</span><span class="p">.</span><span class="nx">Models</span><span class="p">.</span><span class="nx">TagModel</span><span class="p">,</span>
+
+	<span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;/api/v1/tags/&#39;</span><span class="p">,</span>
+
+<span class="p">});</span></code></pre></div>
+
+<p>After adding code like this to your collection, you can simply make a simple call like </p>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">FETCHER</span><span class="p">.</span><span class="nx">Collections</span><span class="p">.</span><span class="nx">Tags</span><span class="p">.</span><span class="nx">sort</span><span class="p">(</span><span class="s2">&quot;attribute&quot;</span><span class="p">)</span></code></pre></div>
+
+<p>And if <code>attribute</code> is boolean, the trues fill float to the top of the collection. Also, note that youc an re-render elements in your UI by listening to the <code>sort</code> call:</p>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="nx">FETCHER</span><span class="p">.</span><span class="nx">Collections</span><span class="p">.</span><span class="nx">Tags</span><span class="p">,</span><span class="s1">&#39;sort&#39;</span><span class="p">,</span><span class="k">this</span><span class="p">.</span><span class="nx">render</span><span class="p">,</span><span class="k">this</span><span class="p">);</span></code></pre></div>
+
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

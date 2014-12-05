@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Setting up Munin on multiple nodes on EC2</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/setting-up-munin-on-muliple-nodes-on-EC2">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/setting-up-munin-on-muliple-nodes-on-EC2");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Sep 3, 2014</p>
+		
+		<h1>Setting up Munin on multiple nodes on EC2</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>If you are running a web service that is spread across multiple nodes on EC2, you should definitely setup some monitoring software as soon as possible. I like to use munin to monitor system-level performance metrics. <a href="http://munin-monitoring.org/apt-g">Munin</a> is easy to install, and it’s fairly easy to build your own plugins (in Python) to monitor any internal metrics (signups, logins, etc).</p>
+
+<p>Unfortunately, there are not a lot of good tutorials helping out beginners on how to install munin from scratch on multiple nodes. I am aiming to bridge that gap with this post. I am assuming you are running UBUNTU 14.04 LTS (installing 3rd party software using <a href="https://help.ubuntu.com/community/AptGet/Howto">apt-get</a>). It is also <strong>very important</strong> that port 4949 is open for TCP, as this is how munin-nodes talk to the munin server. This can be setup using EC2 <a href="https://help.ubuntu.com/community/AptGet/Howto">security groups</a>.</p>
+
+<h2 id="setting-up-munin-nodes">Setting up Munin Nodes</h2>
+
+<p>The first step to installing munin is to update your apt-get package manager (you want the latest and greatest version of munin after all.):</p>
+
+<p><code>bash
+sudo apt-get upgrade
+sudo apt-get update
+</code></p>
+
+<p>After everything is upgraded, you need to install munin and munin-node on all machines you want to monitor. It is important that one <strong>single</strong> machine is going to act as the munin-server, and it will monitor all of the munin nodes. If you want to monitor the machine that is acting as the munin server, it will also be a munin-node (that is what I am doing here). So with that said, on every machine in your web service run the following command:</p>
+
+<p><code>bash
+sudo apt-get install -y munin munin-node munin-plugins-extra
+</code></p>
+
+<p>Installing <a href="https://packages.debian.org/squeeze/munin-plugins-extra">munin-plugins-extra</a> is optional, but I always do it because there are a lot of useful plugins in that package (although not all of them are supported) Ok, munin node should be up and running on all of these machines now, you can see this by doing a grep on the processes:</p>
+
+<p><code>bash
+web1:~$ ps aux | grep munin
+root      9394  0.0  0.1  49948  8200 ?        Ss   May07  12:41 /usr/sbin/munin-node
+</code></p>
+
+<p>Now that munin node is up and running, lets update the munin-node.conf on each of the machines. The <a href="http://munin-monitoring.org/wiki/munin-node.conf">munin-node.conf</a> file needs to be configured to provide the name of the munin-node and the accepted ip-address(s) that are allowed talk to the munin-node process via TCP on port 4949 (default, but can be changed in this file). Here is an example of the munin-node.conf file (on UBUNTU, this file lives at <code>/etc/munin/munin-node.conf</code>).</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="lineno"> 1</span> <span class="c">#</span>
+<span class="lineno"> 2</span> <span class="c"># Example config-file for munin-node</span>
+<span class="lineno"> 3</span> <span class="c">#</span>
+<span class="lineno"> 4</span> 
+<span class="lineno"> 5</span> log_level 4
+<span class="lineno"> 6</span> log_file /var/log/munin/munin-node.log
+<span class="lineno"> 7</span> pid_file /var/run/munin/munin-node.pid
+<span class="lineno"> 8</span> 
+<span class="lineno"> 9</span> background 1
+<span class="lineno">10</span> setsid 1
+<span class="lineno">11</span> 
+<span class="lineno">12</span> user root
+<span class="lineno">13</span> group root
+<span class="lineno">14</span> 
+<span class="lineno">15</span> <span class="c"># Regexps for files to ignore</span>
+<span class="lineno">16</span> 
+<span class="lineno">17</span> ignore_file ~<span class="err">$</span>
+<span class="lineno">18</span> <span class="c">#ignore_file [#~]$  # FIX doesn&#39;t work. &#39;#&#39; starts a comment</span>
+<span class="lineno">19</span> ignore_file DEADJOE<span class="err">$</span>
+<span class="lineno">20</span> ignore_file <span class="se">\.</span>bak<span class="err">$</span>
+<span class="lineno">21</span> ignore_file %<span class="err">$</span>
+<span class="lineno">22</span> ignore_file <span class="se">\.</span>dpkg-<span class="o">(</span>tmp<span class="p">|</span>new<span class="p">|</span>old<span class="p">|</span>dist<span class="o">)</span><span class="err">$</span>
+<span class="lineno">23</span> ignore_file <span class="se">\.</span>rpm<span class="o">(</span>save<span class="p">|</span>new<span class="o">)</span><span class="err">$</span>
+<span class="lineno">24</span> ignore_file <span class="se">\.</span>pod<span class="err">$</span>
+<span class="lineno">25</span> 
+<span class="lineno">26</span> <span class="c"># Set this if the client doesn&#39;t report the correct hostname when</span>
+<span class="lineno">27</span> <span class="c"># telnetting to localhost, port 4949</span>
+<span class="lineno">28</span> <span class="c">#</span>
+<span class="lineno">29</span> <span class="c">#host_name localhost.localdomain</span>
+<span class="lineno">30</span> 
+<span class="lineno">31</span> <span class="c"># A list of addresses that are allowed to connect.  This must be a</span>
+<span class="lineno">32</span> <span class="c"># regular expression, since Net::Server does not understand CIDR-style</span>
+<span class="lineno">33</span> <span class="c"># network notation unless the perl module Net::CIDR is installed.  You</span>
+<span class="lineno">34</span> <span class="c"># may repeat the allow line as many times as you&#39;d like</span>
+<span class="lineno">35</span> 
+<span class="lineno">36</span> host_name database.mathandpencil.com
+<span class="lineno">37</span> allow ^.*<span class="err">$</span>
+<span class="lineno">38</span> 
+<span class="lineno">39</span> <span class="c"># If you have installed the Net::CIDR perl module, you can use one or more</span>
+<span class="lineno">40</span> <span class="c"># cidr_allow and cidr_deny address/mask patterns.  A connecting client must</span>
+<span class="lineno">41</span> <span class="c"># match any cidr_allow, and not match any cidr_deny.  Note that a netmask</span>
+<span class="lineno">42</span> <span class="c"># *must* be provided, even if it&#39;s /32</span>
+<span class="lineno">43</span> <span class="c">#</span>
+<span class="lineno">44</span> <span class="c"># Example:</span>
+<span class="lineno">45</span> <span class="c">#</span>
+<span class="lineno">46</span> <span class="c"># cidr_allow 127.0.0.1/32</span>
+<span class="lineno">47</span> <span class="c"># cidr_allow 192.0.2.0/24</span>
+<span class="lineno">48</span> <span class="c"># cidr_deny  192.0.2.42/32</span>
+<span class="lineno">49</span> 
+<span class="lineno">50</span> <span class="c"># Which address to bind to;</span>
+<span class="lineno">51</span> host *
+<span class="lineno">52</span> <span class="c"># host 127.0.0.1</span>
+<span class="lineno">53</span> 
+<span class="lineno">54</span> <span class="c"># And which port</span>
+<span class="lineno">55</span> port 4949</code></pre></div>
+
+<p>The the only 2 lines in this file that I needed to update were 36+37. Here is where I am telling munin-node that the name of this node (this will show up in the munin graphs) is database.mathandpencil.com and the node should accept all ip addresses. It is important to note I am accepting all IP address because  I have my security groups / and fire walls configured so only <strong>other</strong> computers within my security group can talk to this node. You <strong>do not</strong> want to have TCP on 4949 open to the world. </p>
+
+<p>After you have updated munin-node.conf, you need to restart the process. </p>
+
+<p><code>bash
+sudo service munin-node restart
+</code></p>
+
+<p>Now you are done with this node. You need to do this on every node in your network, and you need to use unique host names for each node. Note, the host names do not have to actually have CNAMES associated with them, they are just for internal, munin usage.</p>
+
+<h2 id="setting-up-the--munin-server">Setting up the  Munin Server</h2>
+
+<p>Now that you have the nodes configured, you need to setup a munin server, which will take all of the munin-node data, aggregate it in 5 minute intervals (via a cron job), and display it in a nice, graphical form. To do this you need to install NGINX to serve the static resoures + html, but first lets use telnet to make sure that your server can communicate with the nodes, as there will be no data to graph if it cannot.</p>
+
+<p>Assuming I am logged in the my munin-server and want to test a munin-node that lives on 1.1.1.1, run the following command:</p>
+
+<p><code>
+web1:~$ telnet 1.1.1.1 4949
+Trying 1.1.1.1...
+Connected to 1.1.1.1.
+Escape character is '^]'.
+# munin node at database.mathandpencil.com
+</code>
+It is important that you can telnet into your munin-nodes FROM your munin server (the instance that shows the graphs). You should NOT be able to telnet from your munin-nodes into your server. It is only a one-way relationship. If you get a reply with the node-name, you are good to go. If you have issues, make sure port 4949 is configured for TCP correct. </p>
+
+<p>Now you need to update your munin server conf file. The munin server config file lives at <code>/etc/munin/munin.conf</code>. You need to add each of the munin nodes you are monitoring so munin config knows where to go grab the statistics from. The following is an example of my <code>munin.conf</code>:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="lineno">1</span> includedir /etc/munin/munin-conf.d
+<span class="lineno">2</span> 
+<span class="lineno">3</span> <span class="o">[</span>monitor.mathandpencil.com<span class="o">]</span>
+<span class="lineno">4</span>     address 127.0.0.1
+<span class="lineno">5</span>     use_node_name no
+<span class="lineno">6</span> 
+<span class="lineno">7</span> <span class="o">[</span>database.mathandpencil.com<span class="o">]</span>
+<span class="lineno">8</span>     address 1.1.1.1
+<span class="lineno">9</span>     use_node_name no</code></pre></div>
+
+<p><code>bash
+sudo apt-get install nginx
+</code></p>
+
+<p>Here is an example of an nginx configuration file I used on my munin server:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="lineno"> 1</span> server <span class="o">{</span>
+<span class="lineno"> 2</span> 	
+<span class="lineno"> 3</span> 	listen 80<span class="p">;</span>
+<span class="lineno"> 4</span> 	client_max_body_size 4M<span class="p">;</span>
+<span class="lineno"> 5</span> 	server_name _<span class="p">;</span>
+<span class="lineno"> 6</span> 	    
+<span class="lineno"> 7</span> 	location /munin/ <span class="o">{</span>
+<span class="lineno"> 8</span> 		auth_basic  <span class="s2">&quot;Restricted&quot;</span><span class="p">;</span>
+<span class="lineno"> 9</span> 		auth_basic_user_file  /home/ubuntu/.htpasswd<span class="p">;</span>
+<span class="lineno">10</span> 		<span class="nb">alias</span> /var/cache/munin/www/<span class="p">;</span>
+<span class="lineno">11</span> 		expires modified +310s<span class="p">;</span>
+<span class="lineno">12</span> 	<span class="o">}</span>
+<span class="lineno">13</span>     
+<span class="lineno">14</span>     location /nginx_status <span class="o">{</span>
+<span class="lineno">15</span>       stub_status   on<span class="p">;</span>
+<span class="lineno">16</span>       access_log    off<span class="p">;</span>
+<span class="lineno">17</span>       allow 127.0.0.1<span class="p">;</span>
+<span class="lineno">18</span>     <span class="o">}</span>
+<span class="lineno">19</span> <span class="o">}</span></code></pre></div>
+
+<p>Lines 7-11 setup the munin graphs. I like my munin graphs to live at <code>http://www.mathandpencil.com/munin/</code>, but it is up to you. Also, I recommend adding authenication to munin, as you do not want any bloak with internet access to see your web service metrics.</p>
+
+<p>Lines 14-17 are actually added so munin can monitor NGINX so if that is something you are interested in, you should definitely add those also.</p>
+
+<p>Now, restart NGINX and wait 5 minutes for the cron job to run and you should see something like the following:</p>
+
+<p><img src="/images/posts/munin_example.png" alt="Example of munin graphs" /></p>
+
+<h2 id="installingdeleting-new-plugins">Installing/Deleting New Plugins</h2>
+
+<p>Up to this point, the only plugins that are installed are the system level plugins that come with munin. You are going to probably want to use addtional plugins to monitor your services (Postgres, MYSQL, Mongo, Redis, etc.)</p>
+
+<p>To install and delete plugins, you need to look at two separate directories:</p>
+
+<p><code>/usr/share/munin/plugins/</code> is where all of the plugins live, but they are not necessarily installed. To install a plugin you need to add a symlink from <code>/usr/share/munin/plugins/</code> to <code>/etc/munin/plugins/</code>. I wish I could tell you that installing the 3rd party plugins that come with <code>munin-plugins-extra</code> is easy, but it is definitely hit-or-miss. I am not going to write anything about how to debug the specific plugins, as you can google that for yourself (good luck, it sucks), but I can tell you a few things to watch out for:</p>
+
+<p>1) Make sure <strong>ALL</strong> plugins have execute permissions!!! (<code>sudo chmod +x PLUGIN</code>)</p>
+
+<p>2) To see which plugins are currently installed, you can run the following command:</p>
+
+<p><code>bash
+sudo munin-node-configure --suggest
+</code></p>
+
+<p>and you will see something like the following output:</p>
+
+<p><code>bash
+web1:~$ sudo munin-node-configure --suggest
+Plugin                     | Used | Suggestions
+------                     | ---- | -----------
+acpi                       | no   | no [cannot read /proc/acpi/thermal_zone/*/temperature]
+amavis                     | no   | no
+apache_accesses            | no   | no [apache server-status not found. check if mod_status is enabled]
+apache_processes           | no   | no
+apache_volume              | no   | no [apache server-status not found. check if mod_status is enabled]
+apc_envunit_               | no   | no [no units to monitor]
+bonding_err_               | no   | no [No /proc/net/bonding]
+courier_mta_mailqueue      | no   | no [spooldir not found]
+courier_mta_mailstats      | no   | no [could not find executable]
+courier_mta_mailvolume     | no   | no [could not find executable]
+cps_                       | no   | no
+cpu                        | yes  | yes
+cpuspeed                   | no   | no [missing /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state]
+cupsys_pages               | no   | no [could not find logdir]
+df                         | yes  | yes
+df_inode                   | yes  | yes
+diskstats                  | yes  | yes
+entropy                    | yes  | yes
+exim_mailqueue             | no   | no [no exiqgrep]
+exim_mailstats             | no   | no [logdir does not exist]
+fail2ban                   | no   | no [/usr/bin/fail2ban-client not found]
+forks                      | yes  | yes
+fw_conntrack               | no   | no
+fw_forwarded_local         | no   | no [/proc/net/ip_conntrack missing or not readable]
+fw_packets                 | yes  | yes
+</code></p>
+
+<p>3) To see which plugins munin <strong><em>thinks</em></strong> are configured correctly and are ready to go, run the following command:</p>
+
+<p><code>bash
+sudo /usr/sbin/munin-node-configure --shell
+</code></p>
+
+<p>and you will see something like the following output:</p>
+
+<p><code>bash
+ln -s '/usr/share/munin/plugins/postgres_autovacuum' '/etc/munin/plugins/postgres_autovacuum'
+ln -s '/usr/share/munin/plugins/postgres_bgwriter' '/etc/munin/plugins/postgres_bgwriter'
+ln -s '/usr/share/munin/plugins/postgres_cache_' '/etc/munin/plugins/postgres_cache_ALL'
+ln -s '/usr/share/munin/plugins/postgres_cache_' '/etc/munin/plugins/postgres_cache_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_checkpoints' '/etc/munin/plugins/postgres_checkpoints'
+ln -s '/usr/share/munin/plugins/postgres_connections_' '/etc/munin/plugins/postgres_connections_ALL'
+ln -s '/usr/share/munin/plugins/postgres_connections_' '/etc/munin/plugins/postgres_connections_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_connections_db' '/etc/munin/plugins/postgres_connections_db'
+ln -s '/usr/share/munin/plugins/postgres_locks_' '/etc/munin/plugins/postgres_locks_ALL'
+ln -s '/usr/share/munin/plugins/postgres_locks_' '/etc/munin/plugins/postgres_locks_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_querylength_' '/etc/munin/plugins/postgres_querylength_ALL'
+ln -s '/usr/share/munin/plugins/postgres_querylength_' '/etc/munin/plugins/postgres_querylength_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_scans_' '/etc/munin/plugins/postgres_scans_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_size_' '/etc/munin/plugins/postgres_size_ALL'
+ln -s '/usr/share/munin/plugins/postgres_size_' '/etc/munin/plugins/postgres_size_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_transactions_' '/etc/munin/plugins/postgres_transactions_ALL'
+ln -s '/usr/share/munin/plugins/postgres_transactions_' '/etc/munin/plugins/postgres_transactions_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_tuples_' '/etc/munin/plugins/postgres_tuples_trades_db'
+ln -s '/usr/share/munin/plugins/postgres_users' '/etc/munin/plugins/postgres_users'
+ln -s '/usr/share/munin/plugins/postgres_xlog' '/etc/munin/plugins/postgres_xlog'
+</code></p>
+
+<p>As you can see, my postgres plugins are configured correctly and munin has auto-generated the symlinks for me. If I execute these commands all of my postgres plugins will now be installed, and in about 5 minutes, the graphs will show up on the munin server</p>
+
+<p>4) To test an individual plugin, you can run the following command (from within <code>/etc/munin/plugins/</code>):</p>
+
+<p><code>bash
+web1:~$ sudo munin-run cpu
+user.value 11422573
+nice.value 18233859
+system.value 14602804
+idle.value 2395193472
+iowait.value 1969520
+irq.value 47
+softirq.value 36488
+steal.value 9676317
+</code>
+As you can see from the output, my <code>cpu</code> plugin is running just fine and returning values.</p>
+
+<p>To delete a plugin (and the graph), just simply delete the symlink and it will drop out next time the cron job runs.</p>
+
+<p>That’s it! That should get you up-and-running pretty quickly. As always, if you have any questions/comments please send me a pull request on github. If you are interested in sys-admin, machine learning, math, and/or statistics you can following me on twitter: <a href="https://www.twitter.com/josephmisiti">@josephmisiti</a></p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

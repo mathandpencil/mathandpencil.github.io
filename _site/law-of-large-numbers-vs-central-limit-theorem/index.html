@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>The Law Of Large Numbers vs. The Central Limit Theorem</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/law-of-large-numbers-vs-central-limit-theorem">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/law-of-large-numbers-vs-central-limit-theorem");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Sep 24, 2014</p>
+		
+		<h1>The Law Of Large Numbers vs. The Central Limit Theorem</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>Two very important theorems in statistics are the <strong>Law of Large Numbers</strong> and the <strong>Central Limit Theorem</strong>. </p>
+
+<h4 id="the-law-of-large-numbers"><strong>The Law of Large Numbers</strong></h4>
+
+<p>The Law of Large Numbers is very simple: as the number of identically distributed, randomly generated variables increases, their sample mean (average) approaches their theoretical mean.</p>
+
+<p>The Law of Large Numbers can be simulated in Python pretty easily:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="lineno"> 1</span> <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="lineno"> 2</span> <span class="k">for</span> <span class="n">num_throws</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10000</span><span class="p">):</span>
+<span class="lineno"> 3</span>     <span class="n">throws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">high</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">num_throws</span><span class="p">)</span>
+<span class="lineno"> 4</span>     <span class="n">mean_of_throws</span> <span class="o">=</span> <span class="n">throws</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="lineno"> 5</span>     <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean_of_throws</span><span class="p">)</span>
+<span class="lineno"> 6</span> 	
+<span class="lineno"> 7</span> <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span> <span class="s">&#39;throws&#39;</span> <span class="p">:</span> <span class="n">results</span><span class="p">})</span>
+<span class="lineno"> 8</span> 
+<span class="lineno"> 9</span> <span class="kn">from</span> <span class="nn">IPython.core.pylabtools</span> <span class="kn">import</span> <span class="n">figsize</span>
+<span class="lineno">10</span> <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="lineno">11</span> <span class="n">figsize</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="lineno">12</span> <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Law of Large Numbers Explained Shown Graphically&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+<span class="lineno">13</span> <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&quot;Number of throws in sample&quot;</span><span class="p">)</span>
+<span class="lineno">14</span> <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&quot;Average Of Sample&quot;</span><span class="p">)</span></code></pre></div>
+
+<p><img src="/images/posts/clt.png" alt="Example of munin graphs" /></p>
+
+<p>In this example, I am simulating throw a six-sided fair dice. The expected value is 3.5 and as you can see from the graph, when the same size is small, the mean is not close to 3.5, but as the sample size increases, the mean approaches 3.5.</p>
+
+<h4 id="the-central-limit-theorm"><strong>The Central Limit Theorm</strong></h4>
+
+<p>The Central Limit Theorem, in probability theory, a theorem that establishes the normal distribution as the distribution to which the mean (average) of almost any set of independent and randomly generated variables rapidly converges. The central limit theorem explains why the normal distribution arises so commonly and why it is generally an excellent approximation for the mean of a collection of data (often with as few as 10 variables).</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="lineno"> 1</span> <span class="n">samples_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="lineno"> 2</span> <span class="n">samples_all_exp</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="lineno"> 3</span> <span class="n">samples_all_possion</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="lineno"> 4</span> <span class="n">samples_all_geometric</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="lineno"> 5</span> <span class="n">mu</span> <span class="o">=</span> <span class="o">.</span><span class="mi">9</span>
+<span class="lineno"> 6</span> <span class="n">lam</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="lineno"> 7</span> <span class="n">size</span><span class="o">=</span><span class="mi">1000</span>
+<span class="lineno"> 8</span> 
+<span class="lineno"> 9</span> <span class="k">for</span> <span class="n">number_in_sample</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20000</span><span class="p">):</span>
+<span class="lineno">10</span>     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+<span class="lineno">11</span>     <span class="n">samples_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="lineno">12</span>     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+<span class="lineno">13</span>     <span class="n">samples_all_exp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="lineno">14</span>     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">geometric</span><span class="p">(</span><span class="n">p</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+<span class="lineno">15</span>     <span class="n">samples_all_geometric</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="lineno">16</span>     <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">poisson</span> <span class="p">(</span><span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+<span class="lineno">17</span>     <span class="n">samples_all_possion</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> 
+<span class="lineno">18</span> 
+<span class="lineno">19</span> <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span> <span class="s">&#39;binomial&#39;</span> <span class="p">:</span> <span class="n">samples_all</span><span class="p">,</span> 
+<span class="lineno">20</span>                      <span class="s">&#39;poission&#39;</span> <span class="p">:</span> <span class="n">samples_all_possion</span><span class="p">,</span>
+<span class="lineno">21</span>                      <span class="s">&#39;geometric&#39;</span> <span class="p">:</span> <span class="n">samples_all_geometric</span><span class="p">,</span>
+<span class="lineno">22</span>                     <span class="s">&#39;exponential&#39;</span> <span class="p">:</span> <span class="n">samples_all_exp</span><span class="p">})</span>
+<span class="lineno">23</span> 					
+<span class="lineno">24</span> <span class="kn">from</span> <span class="nn">IPython.core.pylabtools</span> <span class="kn">import</span> <span class="n">figsize</span>
+<span class="lineno">25</span> <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="lineno">26</span> <span class="n">figsize</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="lineno">27</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="lineno">28</span> <span class="n">df</span><span class="o">.</span><span class="n">binomial</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="lineno">29</span> <span class="n">df</span><span class="o">.</span><span class="n">exponential</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="lineno">30</span> <span class="n">df</span><span class="o">.</span><span class="n">poission</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="lineno">31</span> <span class="n">df</span><span class="o">.</span><span class="n">geometric</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="lineno">32</span> 
+<span class="lineno">33</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Binomial&#39;</span><span class="p">)</span>
+<span class="lineno">34</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Poisson&#39;</span><span class="p">)</span>
+<span class="lineno">35</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Geometric&#39;</span><span class="p">)</span>
+<span class="lineno">36</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Exponential&#39;</span><span class="p">)</span></code></pre></div>
+
+<p><img src="/images/posts/loln.png" alt="Example of munin graphs" /></p>
+
+<p>In the example above, I am creating random samples from four different probability distributions: Normal, Poission, Exponential, and Geometric. After the sample has been created, I take the mean of it and cache it. You can see that when I plot histograms of these means, they all follow the normal distribution, which is pretty amazing, because only 1/4 distributions is normal.</p>
+
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

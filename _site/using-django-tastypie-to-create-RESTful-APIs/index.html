@@ -78,7 +78,7 @@ pip install django-tastypie
 
 <p>Next, you need to create a resources.py in the accounts directory. The resource file is where we define the details of the REST API. In the resource file, lets define the UserResource class:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">UserResource</span><span class="p">(</span><span class="n">ModelResource</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">UserResource</span><span class="p">(</span><span class="n">ModelResource</span><span class="p">):</span>
 		
 	<span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
 		<span class="n">queryset</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
@@ -88,7 +88,7 @@ pip install django-tastypie
 
 <p>After your resource class is defined, you need to tell Django the resource exists. This can be done by setting up the proper calls in the the main <code>urls.py</code> file:</p>
 
-<div class="highlight"><pre><code class="python"><span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
     <span class="c"># Examples:</span>
     <span class="c"># url(r&#39;^$&#39;, &#39;django_tastypie_tutorial.views.home&#39;, name=&#39;home&#39;),</span>
     <span class="c"># url(r&#39;^blog/&#39;, include(&#39;blog.urls&#39;)),</span>
@@ -120,7 +120,7 @@ First, you’ll need to import <code>jquery</code>, <code>backbone</code>, <code
 
 <p>The model and collections “classes” should look something like this:</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">MODELS</span><span class="p">.</span><span class="nx">UserModel</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">MODELS</span><span class="p">.</span><span class="nx">UserModel</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
   
 	<span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 	<span class="p">},</span>
@@ -150,7 +150,7 @@ First, you’ll need to import <code>jquery</code>, <code>backbone</code>, <code
 
 <p>Finally, I provided a very small app that lists the contents of the collection. The App contains two backbone views: one that list the content of each model, and another that listens for a reset event on the the collection and then renders the app on this event: </p>
 
-<div class="highlight"><pre><code class="javascript"><span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">VIEWS</span><span class="p">.</span><span class="nx">ExampleListItem</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span> 
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">EXAMPLE</span><span class="p">.</span><span class="nx">VIEWS</span><span class="p">.</span><span class="nx">ExampleListItem</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span> 
 	
 	<span class="nx">tagName</span> <span class="o">:</span> <span class="s1">&#39;div&#39;</span><span class="p">,</span>
 
@@ -217,7 +217,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <p>REST is great, but lets face it, it cannot solve every problem. Sometimes you need to define your own custom APIs. Especially when you have to update two models in one request, if you want to send an email via AJAX, etc. I have provided an example of a custom login method in the UserResource file <code>handle_login</code>.</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">UserResource</span><span class="p">(</span><span class="n">ModelResource</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">UserResource</span><span class="p">(</span><span class="n">ModelResource</span><span class="p">):</span>
 		
 	<span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
 		<span class="n">queryset</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
@@ -255,7 +255,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <p>By default, the API I created allows any authenticated/non-authenticated user to perform any REST actions GET/PUT/DELETE/POST. This is obviously not ideal for a production application. To limit what data the API returns, Django-Tastypie provides a series of methods you can override. For example, lets say you have <code>cat</code> model that has a <code>user</code> attribute (foreign key). The user attribute specifies the person who created the cat object. If you want to change the API so only the user that created cats can update their cat objects, you would add the following methods to the Tastypie model resource class:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">authorized_create_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">authorized_create_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
 	<span class="k">return</span> <span class="n">object_list</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">bundle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">authorized_create_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
@@ -285,7 +285,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <p>Sometimes it is useful to add custom attributes to the responses being returned from your REST API. To do this with Tastypie, you can add these attributes to the <code>dehydrate</code> method. The following example uses Python’s datetime module to reformat the three date attributes in the Tastypie response:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">dehydrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">dehydrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
 	<span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;c&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y&#39;</span><span class="p">)</span>
 	<span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;modified&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;m&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">/%Y&#39;</span><span class="p">)</span>
 	<span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m/</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
@@ -293,7 +293,7 @@ EXAMPLE.COLLECTIONS.Users.fetch({ reset : true })
 
 <p>A final note - I am not going to go over authorization or authentication, but there are a number of options that can be found in Tastypie’s <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authorization</a> and <a href="http://django-tastypie.readthedocs.org/en/latest/authentication.html">authenication</a> classes. Sometimes, it is also useful to be able to serialize an ORM model/queryset using Tastypie’s serialization methods. I could not find an easy way to do this, so I wrote the following two custom methods that seem to work great. I copy them into almost every Django project I start these days.</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">serialize_all_resource</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&quot;application/json&quot;</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">serialize_all_resource</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&quot;application/json&quot;</span><span class="p">):</span>
 	<span class="n">res</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
 	<span class="n">request_bundle</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">build_bundle</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
 	<span class="n">queryset</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">obj_get_list</span><span class="p">(</span><span class="n">request_bundle</span><span class="p">)</span>

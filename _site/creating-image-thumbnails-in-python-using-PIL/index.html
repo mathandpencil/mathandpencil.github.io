@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Creating Image Thumbnails and Crops In Python Using S3 and PIL</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/creating-image-thumbnails-in-python-using-PIL">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/creating-image-thumbnails-in-python-using-PIL");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Oct 4, 2014</p>
+		
+		<h1>Creating Image Thumbnails and Crops In Python Using S3 and PIL</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>If you ever plan on designing a web application that requires image uploading, you will probably need to create image thumbnails. Amazon S3 is a great place to store images because it is very cheap, reliable, and has a robust API (in python accessible via boto). Although creating thumbnails is pretty easy, I believe having both scenarios described below in a single place is useful, as I have had to look at multiple stackoverflow posts to find these solutions.</p>
+
+<p>The two different scenarios we are going to go over here are the following</p>
+
+<ol>
+  <li>The images are already on the internet, so you need to download them, resize them, and upload them to Amazon S3</li>
+  <li>The images are on a local hard drive, so we need to handle image upload to the webserver, processing, and then uploading to Amazon S3.</li>
+</ol>
+
+<h3 id="the-images--already-reside-on-the-internet">The Images  Already Reside On The Internet</h3>
+
+<p>If you’re images already reside on the internet, you do not need to handle the image upload mechanism. Your software needs to be able to download the image, perform and processing on the image, and then upload the results to Amazon S3.</p>
+
+<p>Downloading an image from the internet is pretty easy using Python’s excellent requests library:</p>
+
+<p><code>python
+response = requests.get(self.high_res)
+return Image.open(StringIO.StringIO(response.content))
+</code></p>
+
+<p>It is important you store the image in a <code>StringIO</code> object, because then you can read it into PIL without saving it to disk. Once you have the image data you can create a thumbnail using the following method:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">reduce_image_resolution</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">basewidth</span> <span class="o">=</span> <span class="mi">400</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot; reduce image resolution to &lt;constant&gt; precent of what is uploaded &quot;&quot;&quot;</span>
+	<span class="n">wpercent</span> <span class="o">=</span> <span class="p">(</span><span class="n">basewidth</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+	<span class="n">hsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">wpercent</span><span class="p">)))</span>
+	<span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">basewidth</span><span class="p">,</span><span class="n">hsize</span><span class="p">),</span> <span class="n">PIL</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+	
+	<span class="n">file_name</span><span class="p">,</span> <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">image_path</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">image_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">new_file_name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">_REDUCED_</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">extension</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">extension</span> <span class="ow">is</span> <span class="s">&#39;.JPG&#39;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="ow">is</span> <span class="s">&#39;.JPEG&#39;</span><span class="p">:</span>
+		<span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">new_file_name</span><span class="p">,</span> <span class="s">&quot;JPEG&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">new_file_name</span><span class="p">,</span> <span class="s">&quot;PNG&quot;</span><span class="p">)</span>
+		
+	<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;~FR image reduced </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="n">new_file_name</span><span class="p">)</span>
+	<span class="k">return</span> <span class="p">(</span><span class="n">new_file_name</span><span class="p">,</span> <span class="n">basewidth</span><span class="p">,</span> <span class="n">hsize</span><span class="p">)</span></code></pre></div>
+
+<p>The method above forced the width of the image to be <code>basewidth</code>, which for my application is 400 pixels. If you have x,y,w,h, and you want to crop the image instead, you can use a method like the following</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">crop_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Upload image to S3 via a string buffer</span>
+<span class="sd">		http://stackoverflow.com/questions/6685500/upload-resized-image-to-s3</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">left</span> <span class="o">=</span> <span class="n">x</span>
+	<span class="n">top</span> <span class="o">=</span> <span class="n">y</span>
+	<span class="n">right</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span>
+	<span class="n">bottom</span> <span class="o">=</span> <span class="n">y</span><span class="o">+</span> <span class="n">h</span>
+	<span class="n">im</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_from_web</span><span class="p">()</span>
+	<span class="n">output</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+	<span class="n">im</span><span class="o">.</span><span class="n">crop</span><span class="p">((</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s">&#39;PNG&#39;</span><span class="p">)</span>
+	<span class="n">output_file_name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">_THUMB.PNG&quot;</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+	<span class="k">return</span> <span class="n">S3</span><span class="o">.</span><span class="n">upload_to_s3_from_buffer</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">output_file_name</span><span class="p">,</span> <span class="nb">buffer</span><span class="o">=</span><span class="n">output</span><span class="p">)</span></code></pre></div>
+
+<p>You need a special function for uploading an image to S3 using boto via a <code>StringIO</code>. That method looks like the following:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">upload_to_s3_from_buffer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="nb">buffer</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Upload image to S3 via a string buffer (instead of reading off your local hd)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">connection</span> 	<span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">connect_s3</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">AWS_ACCESS_KEY</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">AWS_SECRET_KEY</span><span class="p">)</span>	
+	<span class="n">bucket</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span> <span class="n">settings</span><span class="o">.</span><span class="n">AWS_BUCKET_NAME</span> <span class="p">)</span>
+	<span class="n">key</span> <span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+	<span class="n">key</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">file_name</span>
+	<span class="n">key</span><span class="o">.</span><span class="n">set_contents_from_string</span><span class="p">(</span><span class="nb">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s">&quot;image/png&quot;</span><span class="p">})</span>
+	<span class="n">key</span><span class="o">.</span><span class="n">make_public</span><span class="p">()</span>
+	<span class="n">url</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">generate_url</span><span class="p">(</span><span class="n">expires_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">query_auth</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+	<span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;~FM [URL </span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="n">url</span> <span class="p">)</span>
+	<span class="k">return</span> <span class="n">url</span></code></pre></div>
+
+<h3 id="the-images-resize-on-the-customers-local-hard-drive">The Images Resize On The Customer’s Local Hard drive</h3>
+
+<p>If the image does not resize on the internet, you’re going to have to handle the upload in your web application also. There are a variety of different jquery uploaders that can be used to upload files to a web server. My favorite at the moment is dropzone.js, but really anything will work. Using django, you can handle an AJAX request for a file upload as follows:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">is_raw</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+	<span class="n">upload</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">filename</span> <span class="o">=</span> <span class="n">upload</span><span class="o">.</span><span class="n">name</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Bad Upload&quot;</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">success</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">path_to_file</span><span class="p">)</span> <span class="o">=</span> <span class="n">save_upload</span><span class="p">(</span> <span class="n">upload</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">is_raw</span><span class="p">,</span> <span class="s">&#39;misc&#39;</span> <span class="p">)</span>
+<span class="n">fileName</span><span class="p">,</span> <span class="n">fileExtension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span></code></pre></div>
+
+<p>And the <code>save_upload</code> method used above performs the following:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">save_upload</span><span class="p">(</span> <span class="n">uploaded</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">raw_data</span><span class="p">,</span> <span class="n">folder</span> <span class="p">):</span>
+
+	<span class="n">uid</span>			<span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+	<span class="n">extension</span>	<span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>	 
+	<span class="n">cloud_name</span>	<span class="o">=</span> <span class="n">uid</span> <span class="o">+</span> <span class="n">extension</span>
+		
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="n">folder</span><span class="p">))</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="k">pass</span>
+	
+	<span class="n">local_file_path</span>		<span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">cloud_name</span> <span class="p">)</span>
+	<span class="n">non_absolute_path</span>	<span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">cloud_name</span>  <span class="p">)</span>
+			
+	<span class="k">with</span> <span class="n">BufferedWriter</span><span class="p">(</span> <span class="n">FileIO</span><span class="p">(</span> <span class="n">local_file_path</span><span class="p">,</span> <span class="s">&quot;w&quot;</span> <span class="p">)</span> <span class="p">)</span> <span class="k">as</span> <span class="n">dest</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">raw_data</span><span class="p">:</span>
+			<span class="n">foo</span> <span class="o">=</span> <span class="n">uploaded</span><span class="o">.</span><span class="n">read</span><span class="p">(</span> <span class="mi">1024</span> <span class="p">)</span>
+			<span class="k">while</span> <span class="n">foo</span><span class="p">:</span>
+				<span class="n">dest</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">foo</span> <span class="p">)</span>
+				<span class="n">foo</span> <span class="o">=</span> <span class="n">uploaded</span><span class="o">.</span><span class="n">read</span><span class="p">(</span> <span class="mi">1024</span> <span class="p">)</span> 
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">uploaded</span><span class="o">.</span><span class="n">chunks</span><span class="p">():</span>
+				<span class="n">dest</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">c</span> <span class="p">)</span>
+		<span class="k">return</span> <span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">local_file_path</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span></code></pre></div>
+
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

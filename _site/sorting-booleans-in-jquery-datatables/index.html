@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Sorting Boolean Columns In JQuery Datatables</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/sorting-booleans-in-jquery-datatables">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/sorting-booleans-in-jquery-datatables");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Nov 4, 2014</p>
+		
+		<h1>Sorting Boolean Columns In JQuery Datatables</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>Recently I had some data in a table and was using the excellent front-end library <a href="http://www.datatables.net/">jQuery Datatables</a> to interact with the data. One of the columns was boolean and was not sorting correctly. I googled around the internet and hacked together a solution that worked for me.</p>
+
+<p>First off, you have to add some hidden html to your table. In my case, I was storing the booleans as an interactive column of buttons the user could toggle with an <code>onclick</code> event. So I was starting off with some HTML that looked like this for <code>true</code> columns:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;td</span> <span class="na">data-action=</span><span class="s">&quot;add&quot;</span> <span class="na">class=</span><span class="s">&quot;js-action icon-checkmark bkg green icons&quot;</span><span class="nt">&gt;</span>
+	<span class="nt">&lt;/td&gt;</span></code></pre></div>
+
+<p>And looked like this for <code>false</code> columns:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;td</span> <span class="na">data-action=</span><span class="s">&quot;add&quot;</span> <span class="na">class=</span><span class="s">&quot;js-action icon-checkmark incomplete icons tooltip_html&quot;</span> <span class="nt">&gt;</span>
+	<span class="nt">&lt;/td&gt;</span></code></pre></div>
+
+<p>Basically just a red/green button depending on the state, pretty amazing shit I know. So I first added two hidden <code>div</code> tags in each of these table data tags using an html data tag to specify if it was <code>true</code> or <code>false</code> using zero or one.</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;td</span> <span class="na">data-action=</span><span class="s">&quot;add&quot;</span> <span class="na">class=</span><span class="s">&quot;js-action icon-checkmark bkg green icons&quot;</span><span class="nt">&gt;</span>
+		<span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;display:hidden&quot;</span><span class="na">data-sort=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+	<span class="nt">&lt;/td&gt;</span></code></pre></div>
+
+<p>And looked like this for <code>false</code> columns:</p>
+
+<div class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;td</span> <span class="na">data-action=</span><span class="s">&quot;add&quot;</span> <span class="na">class=</span><span class="s">&quot;js-action icon-checkmark incomplete icons tooltip_html&quot;</span> <span class="nt">&gt;</span>
+		<span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;display:hidden&quot;</span> <span class="na">data-sort=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+	<span class="nt">&lt;/td&gt;</span></code></pre></div>
+
+<p>For all you beginners out there, pay attention to the <code>data-sort</code> attribute.</p>
+
+<p>Next, I needed to “dive” into some javascript and tell datatables how to sort this data:</p>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">jQuery</span><span class="p">.</span><span class="nx">fn</span><span class="p">.</span><span class="nx">dataTableExt</span><span class="p">.</span><span class="nx">oSort</span><span class="p">[</span><span class="s1">&#39;checked-in-asc&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">a_sort</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="nx">a</span><span class="p">).</span><span class="nx">data</span><span class="p">(</span><span class="s2">&quot;sort&quot;</span><span class="p">));</span>
+	<span class="kd">var</span> <span class="nx">b_sort</span> <span class="o">=</span>  <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="nx">b</span><span class="p">).</span><span class="nx">data</span><span class="p">(</span><span class="s2">&quot;sort&quot;</span><span class="p">));</span>
+	<span class="k">return</span> <span class="p">((</span><span class="nx">a_sort</span> <span class="o">&lt;</span> <span class="nx">b_sort</span><span class="p">)</span> <span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="p">((</span><span class="nx">a_sort</span> <span class="o">&gt;</span> <span class="nx">b_sort</span><span class="p">)</span> <span class="o">?</span>  <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">));</span>
+<span class="p">};</span>
+
+<span class="nx">jQuery</span><span class="p">.</span><span class="nx">fn</span><span class="p">.</span><span class="nx">dataTableExt</span><span class="p">.</span><span class="nx">oSort</span><span class="p">[</span><span class="s1">&#39;checked-in-desc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">a_sort</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="nx">a</span><span class="p">).</span><span class="nx">data</span><span class="p">(</span><span class="s2">&quot;sort&quot;</span><span class="p">));</span>
+	<span class="kd">var</span> <span class="nx">b_sort</span> <span class="o">=</span>  <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="nx">b</span><span class="p">).</span><span class="nx">data</span><span class="p">(</span><span class="s2">&quot;sort&quot;</span><span class="p">));</span>
+	<span class="k">return</span> <span class="p">((</span><span class="nx">a_sort</span> <span class="o">&lt;</span> <span class="nx">b_sort</span><span class="p">)</span> <span class="o">?</span>  <span class="mi">1</span> <span class="o">:</span> <span class="p">((</span><span class="nx">a_sort</span> <span class="o">&gt;</span> <span class="nx">b_sort</span><span class="p">)</span> <span class="o">?</span> <span class="o">-</span><span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">));</span>
+<span class="p">};</span></code></pre></div>
+
+<p>Here I’m simply pulling the value out of the <code>data-sort</code> attribute, converting it to an integer, and then doing a simple comparision for both ascending and decending sort.</p>
+
+<p>I needed to tell the datatable what type of column I was using.</p>
+
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.js-dt&#39;</span><span class="p">).</span><span class="nx">dataTable</span><span class="p">({</span>
+	<span class="s2">&quot;aoColumns&quot;</span><span class="o">:</span> <span class="p">[</span>
+				<span class="kc">null</span><span class="p">,</span>
+				<span class="kc">null</span><span class="p">,</span>
+				<span class="kc">null</span><span class="p">,</span>
+				<span class="kc">null</span><span class="p">,</span>
+				<span class="p">{</span> <span class="s2">&quot;sType&quot;</span><span class="o">:</span> <span class="s2">&quot;checked-in&quot;</span> <span class="p">},</span>
+				<span class="kc">null</span>
+			<span class="p">],</span>
+	<span class="nx">aaSorting</span><span class="o">:</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;desc&quot;</span><span class="p">]],</span>	
+	<span class="nx">iDisplayLength</span><span class="o">:</span> <span class="mi">10</span><span class="p">,</span>
+	<span class="s2">&quot;sDom&quot;</span><span class="o">:</span> <span class="s1">&#39;&lt;&quot;clear&quot;&gt;lfrtip&lt;&quot;clear&quot;&gt;&#39;</span><span class="p">,</span>
+	<span class="s2">&quot;bDestroy&quot;</span><span class="o">:</span> <span class="kc">true</span>
+<span class="p">});</span></code></pre></div>
+
+<p>In my case, my new column was living in column 5 in my table. Finally, I forced the table to sort in decending order by default, refreshed, and boom, I am now sorting booleans.</p>
+
+<p>I hate javascript, but if you like articles like this, follow me on twitter <a href="https://twitter.com/josephmisiti">@josephmisiti</a></p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>

@@ -62,7 +62,7 @@
 
 <p>In general, avoid storing state-based data in a session. If you are going to store something in a session, and you want a unit test to make sure the view or code is working properly, you can bootstrap your session in your setUp function as follows:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
  <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
  <span class="n">engine</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SESSION_ENGINE</span><span class="p">)</span>
  <span class="n">store</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">SessionStore</span><span class="p">()</span>
@@ -79,7 +79,7 @@
 <p>Sometimes private functions in Django can take requests as input parameters. If you need to unit test these
 functions, you are going to need access to a Django request. You can use this class to gain access to the request object</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">RequestFactory</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>  
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">RequestFactory</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>  
 	<span class="sd">&quot;&quot;&quot;	 </span>
 <span class="sd">	Class that lets you create mock Request objects for use in testing.	</span>
 <span class="sd">	Helpful when trying add data to a sessions </span>
@@ -130,7 +130,7 @@ functions, you are going to need access to a Django request. You can use this cl
 
 <p>Your unit test would look something like this:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">():</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">setUp</span><span class="p">():</span>
 	<span class="bp">self</span><span class="o">.</span><span class="n">rf</span> <span class="o">=</span> <span class="n">RequestFactory</span><span class="p">()</span>
 <span class="o">...</span>
 
@@ -148,7 +148,7 @@ functions, you are going to need access to a Django request. You can use this cl
 
 <p>Testing AJAX calls isn’t hard, but you should always load the response as JSON (using your favorite JSON module) and then write test to ensure the correct data is returned.</p>
 
-<div class="highlight"><pre><code class="python"><span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;add-question&#39;</span><span class="p">),</span> <span class="p">{},</span> <span class="n">HTTP_X_REQUESTED</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;add-question&#39;</span><span class="p">),</span> <span class="p">{},</span> <span class="n">HTTP_X_REQUESTED</span><span class="o">=</span><span class="s">&#39;XMLHttpRequest&#39;</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>	
 <span class="n">response_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">response_json</span><span class="p">)</span>
@@ -161,7 +161,7 @@ functions, you are going to need access to a Django request. You can use this cl
 
 <p>If you have a view or function that sends and email, Django has built in unit testing modules to let you test if the email was sent. It also lets you check the content (subject + body) of the email.</p>
 
-<div class="highlight"><pre><code class="python"><span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">subject</span><span class="p">,</span> <span class="n">GENERIC_SOCIALQ_WELCOME_EMAIL_SUBJECT</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span> <span class="s">&#39;newuser@socialq.com&#39;</span> <span class="ow">in</span> <span class="n">mail</span><span class="o">.</span><span class="n">outbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">)</span></code></pre></div>
@@ -170,7 +170,7 @@ functions, you are going to need access to a Django request. You can use this cl
 
 <p>Do you use Facebook’s Graph API? If so, we develop this class to mock the facebook API in unit tests:</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">class</span> <span class="nc">MockGraphAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">MockGraphAPI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 	<span class="n">me_profile</span><span class="o">=</span><span class="n">FACEBOOK_ME</span>
 	<span class="n">me_checkins</span><span class="o">=</span><span class="n">FACEBOOK_ME_CHECKINS</span>
 	<span class="n">me_friends</span><span class="o">=</span><span class="n">FACEBOOK_ME_FRIENDS</span>
@@ -274,7 +274,7 @@ functions, you are going to need access to a Django request. You can use this cl
 
 <p>You can use this class in a unit tests as follows:</p>
 
-<div class="highlight"><pre><code class="python"><span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi_patcher</span> <span class="o">=</span> <span class="n">patch</span><span class="p">(</span><span class="s">&#39;vendor.facebook.facebook.GraphAPI&#39;</span><span class="p">,</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi_patcher</span> <span class="o">=</span> <span class="n">patch</span><span class="p">(</span><span class="s">&#39;vendor.facebook.facebook.GraphAPI&#39;</span><span class="p">,</span>
 <span class="n">new_callable</span><span class="o">=</span><span class="n">getMockGraphAPI</span><span class="p">())</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mock_graphapi_patcher</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></code></pre></div>
 

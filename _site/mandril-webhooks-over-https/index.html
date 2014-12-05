@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Setting Up Mandrill Webhooks With HTTPS</title>
+	<meta name="viewport" content="width=device-width">
+	<meta name="description" content="Bringing Your Ideas To Life">
+	<link rel="canonical" href="/mandril-webhooks-over-https">
+	
+	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Pacifico' rel='stylesheet' type='text/css' />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="/css/main.css">
+	<link rel="stylesheet" href="/css/icons.css">
+	
+	<!-- start Mixpanel --><script type="text/javascript">(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+	for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+	mixpanel.init("55ef56f5e64295bfca50e477c0f0e0e2");</script><!-- end Mixpanel -->
+	
+	<script>
+	mixpanel.track("/mandril-webhooks-over-https");
+	</script>
+	
+</head>
+
+
+	
+	<body>
+		<header class="site-header">
+	<div class="wrap">
+		<a class="site-title" href="/">
+		</a>
+		
+		<nav class="site-nav">
+			<div class="trigger">
+				<a class="icons icon-info page-link" href="http://www.mathandpencil.com/capabilities"></a>
+			</div>
+		</nav>
+	</div>
+</header>
+		
+		<div class="page-content">
+			<div class="wrap">
+				<div class="post" style="padding:1.85em 0.75em;">
+	<header class="post-header">
+		<p class="meta">Nov 3, 2014</p>
+		
+		<h1>Setting Up Mandrill Webhooks With HTTPS</h1>
+	</header>
+	
+	<article class="post-content">
+		<p>I ran into an issue recently trying to utilize <a href="https://mandrillapp.com/settings/webhooks">Mandrill’s web hooks</a> on a site forcing HTTPS (duh). After sending the test webhook from the web interface, I saw the following error:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">Webhook</span> <span class="n">failed</span> <span class="k">with</span> <span class="n">error</span><span class="p">:</span> <span class="n">POST</span> <span class="n">to</span> 
+<span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">staging</span><span class="o">.</span><span class="n">mysite</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">invites</span><span class="o">/</span><span class="n">mandrill</span><span class="o">/</span><span class="n">callback</span> <span class="n">failed</span><span class="p">:</span> 
+<span class="n">SSL</span> <span class="n">certificate</span> <span class="n">problem</span><span class="p">,</span> <span class="n">verify</span> <span class="n">that</span> <span class="n">the</span> <span class="n">CA</span> <span class="n">cert</span> <span class="ow">is</span> <span class="n">OK</span><span class="o">.</span> 
+<span class="n">Details</span><span class="p">:</span> <span class="n">error</span><span class="p">:</span><span class="mi">14090086</span><span class="p">:</span><span class="n">SSL</span> 
+<span class="n">routines</span><span class="p">:</span><span class="n">SSL3_GET_SERVER_CERTIFICATE</span><span class="p">:</span>
+<span class="n">certificate</span> <span class="n">verify</span> <span class="n">failed</span></code></pre></div>
+
+<p>After doing a bit of internet searching, and testing different server configurations, I figured out that I did not concatentate my <a href="https://support.comodo.com/index.php?/Default/Knowledgebase/Article/View/789/37/certificate-installation-nginx">SSL certificates correctly</a>.</p>
+
+<p>I bought my SSL cert from <a href="https://ssl.comodo.com/">Comodo</a>, and after paying for the certs I received four files: <code>AddTrustExternalCARoot.crt</code>, <code>STAR_mysite_com.crt</code>,<code>COMODORSAAddTrustCA.crt</code>	and <code>COMODORSADomainValidationSecureServerCA.crt</code>	</p>
+
+<p>The final solution was to concatentate them together in the following order:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">cat</span> <span class="n">STAR_mysite_com</span><span class="o">.</span><span class="n">crt</span> <span class="n">COMODORSADomainValidationSecureServerCA</span><span class="o">.</span><span class="n">crt</span> 
+<span class="n">AddTrustExternalCARoot</span><span class="o">.</span><span class="n">crt</span> <span class="n">COMODORSAAddTrustCA</span><span class="o">.</span><span class="n">crt</span> <span class="o">&gt;</span> <span class="n">ssl</span><span class="o">-</span><span class="n">bundle</span><span class="o">.</span><span class="n">crt</span></code></pre></div>
+
+<p>And finally, place the following blog in your NGINX config:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">server</span> <span class="p">{</span>
+
+	<span class="n">listen</span>	<span class="mi">443</span> <span class="n">default_server</span> <span class="n">ssl</span><span class="p">;</span>
+	<span class="n">client_max_body_size</span> <span class="mi">4</span><span class="n">M</span><span class="p">;</span>
+	<span class="n">server_name</span> <span class="n">_</span><span class="p">;</span>
+
+	<span class="n">ssl</span> <span class="n">on</span><span class="p">;</span>
+	<span class="n">ssl_certificate</span>			<span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">ubuntu</span><span class="o">/.</span><span class="n">keys</span><span class="o">/</span><span class="n">ssl</span><span class="o">-</span><span class="n">bundle</span><span class="o">.</span><span class="n">crt</span><span class="p">;</span>
+	<span class="n">ssl_certificate_key</span>		<span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">ubuntu</span><span class="o">/.</span><span class="n">keys</span><span class="o">/</span><span class="n">mysite</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">key</span><span class="p">;</span>
+	
+	<span class="o">....</span>
+<span class="p">}</span></code></pre></div>
+
+<p>Restart your NGINX server, and the test webhook will be successful!</p>
+
+<p>P.S - Fuck Dev Ops</p>
+
+	</article>
+</div>
+			</div>
+		</div>
+		<footer class="site-footer">
+	<div class="wrap">
+		<div class="footer-col-1 column">
+			<ul>
+				<li></li>
+				<li>
+					<a href="mailto:info@mathandpencil.com">info@mathandpencil.com</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-2 column">
+			<ul>
+				<li>
+					<a class="icons icon-signup" href="/feed.xml"></a>
+				</li>
+				
+				<li>
+					<a class="icons icon-github2" href="https://github.com/mathandpencil">
+					</a>
+				</li>
+				
+				<li>
+					<a class="icons icon-twitter" href="https://twitter.com/mathandpencil">
+					</a>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="footer-col-3 column">
+			<p class="text">Bringing Your Ideas To Life</p>
+		</div>
+	</div>
+</footer>
+	</body>
+</html>
