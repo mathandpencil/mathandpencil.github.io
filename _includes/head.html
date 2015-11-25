@@ -4,7 +4,7 @@
 	<title>{% if page.title %}{{ page.title }}{% else %}{{ site.name }}{% endif %}</title>
 	<meta name="viewport" content="width=device-width">
 	<meta name="description" content="{{ site.description }}">
-	<link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl }}">
+	<link rel="canonical" href="{% if page.canonical %}{{ page.canonical }}{% else %}{{ page.url | replace:'index.html','' | prepend: site.baseurl }}{% endif %}">
 
 	<link href='//fonts.googleapis.com/css?family=Titillium+Web:400,200|Lato:300,400,700|Arvo' rel='stylesheet' type='text/css' />
 
