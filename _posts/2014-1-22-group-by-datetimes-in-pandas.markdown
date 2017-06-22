@@ -58,7 +58,6 @@ Finally, if you want to group by day, week, month respectively:
 df['count'].resample('D', how='sum')
 df['count'].resample('W', how='sum')
 df['count'].resample('M', how='sum')
-
 ```
 
 
