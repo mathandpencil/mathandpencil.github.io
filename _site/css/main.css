@@ -116,7 +116,7 @@ li,
 	padding:0;
 	position:absolute;
 	top:50px;
-	width:100%;
+	right:0;
 	text-align:right;
 	overflow:auto;
 }
@@ -131,7 +131,7 @@ li,
 
 .posts {
 	list-style-type: none;
-	max-width:400px;
+	max-width:500px;
 	float:right;
 }
 
