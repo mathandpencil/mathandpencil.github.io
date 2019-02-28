@@ -69,7 +69,6 @@ li,
 .wrap:after { clear: both; }
 .wrap {
 	margin: 0 auto;
-	max-width: 1500px;
 	padding: 0 30px;
 	zoom: 1;
 	width:90%;
@@ -132,6 +131,7 @@ li,
 .posts {
 	list-style-type: none;
 	max-width:500px;
+	padding-right:30px;
 	float:right;
 }
 
