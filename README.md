@@ -1,4 +1,6 @@
-socialq.github.io
-=================
+mathandpencil.github.io
+=======================
 
-The blog of SocialQ
+The blog of [Math and Pencil][Math and Pencil].
+
+[Math and Pencil]: https://www.mathandpencil.com/
