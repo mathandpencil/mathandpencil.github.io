@@ -265,7 +265,8 @@ li,
 	border: 1px solid #d5d5e9;*/
 	font-size: 15px;
 	padding: 8px 12px;
-	white-space:normal;
+	white-space: pre;
+	white-space: pre-wrap;
 	text-align:left;
 	word-break: break-word;
 }
