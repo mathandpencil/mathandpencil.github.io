@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Why becoming a data scientist is NOT actually easier than you think'
-date: 2018-04-26
+date: 2019-04-26
 categories: datascience,machinelearning,algorithms
 ---
 
